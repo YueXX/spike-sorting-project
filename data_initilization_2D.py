@@ -70,7 +70,7 @@ def signal_simulator(time, spike_len, mu,sigma,lambd,unit=0.1, plot=False):
 
 	x_axis=x*unit
 
-	spike_x=np.arange(-spike_len_unit/2,spike_len_unit/2)
+	spike_x=np.arange(-spike_len/2,spike_len/2,unit)
 
 	spike1=np.exp(-np.power(spike_x/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
 	spike2=np.exp(-np.power(spike_x/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
@@ -123,11 +123,11 @@ x2,y2=signal_simulator(300,6,[0,4],[2,1],2,0.1,False)
 y=y1+y2
 
 y_n=noise(y,0.1)
-plt.plot(x1,y)
+plt.plot(y)
 
 plt.show()
 
-plt.plot(x1,y_n)
+plt.plot(y_n)
 plt.show()
 
 
