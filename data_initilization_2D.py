@@ -1,18 +1,16 @@
-# Signal Simulator
-# The returned signal is 2 vectors: x-axis/y-axis
-
 import numpy as np
 import random as rand
 from matplotlib import pyplot as plt
 
+#new
 #################################################################################################
-# Signal simulator function: this function will simulate signal of one single cell 
-# the random interval between two consecutive spike is in Exponential distribution 
+# The following code will generate simulated signals for spike sorting
 
+# spike_generator will generate the timeline when the spike will appear
+# waveform generator will generate the wave form according to the timeline
 
 # Input: 
 # time: the set total time for the signal 
-
 # spike_len: the length of each spike(the cut-off length of spike simulated by Gaussian difference)
 
 # mu,sigma is the array of 2 Gaussian parameters that we use to determine the shape
@@ -29,24 +27,20 @@ from matplotlib import pyplot as plt
 # Output:
 # two vectors specifies the x-axis of the signal and the y-axis of the signal
 
-def signal_simulator(time, spike_len, mu,sigma,lambd,unit=0.1, plot=False):
-
+def spike_generator(time, spike_len, interval_parameter, unit=0.1):
+# Initilization
 	var=0
 	start_time=[]
-
 	index=0
-	lambd_unit=lambd/unit
+# Change variable according to different unit
+	parameter_unit=interval_parameter/unit
 	spike_len_unit=spike_len/unit
 	time_unit=time/unit
 
-	mu1=mu[0]
-	mu2=mu[1]
-	sigma1=sigma[0]
-	sigma2=sigma[1]
 
+# Main loop to generate the time axis
 	while var < time_unit:
-		interval=rand.expovariate(1.0/lambd_unit)
-		
+		interval=rand.expovariate(1.0/parameter_unit)
 		interval=int(interval)
 
 		var=var+spike_len_unit+interval		
@@ -55,21 +49,39 @@ def signal_simulator(time, spike_len, mu,sigma,lambd,unit=0.1, plot=False):
 		index=index+1
 
 	start_time[-1]=time_unit
-	start_time1=np.array(start_time)*unit
-	
+	spike_time=np.array(start_time)*unit
 	
 
+	return spike_time
+	
+
+
+#################################################################
+def waveform_generator(spike_time,spike_len,shape_parameter,unit=0.1):
+	# get shape parameters
+	mu1=shape_parameter[0,0]
+	mu2=shape_parameter[0,1]
+
+	sigma1=shape_parameter[1,0]
+	sigma2=shape_parameter[1,1]
+
+	# Convert unit
+	start_time=np.array(spike_time)/unit
+	time=spike_time[-1]
+	time_unit=time/unit
+	spike_len_unit=spike_len/unit
+	
+	# set the length for waveform
 	x=np.arange(time_unit)
 	y=np.zeros(time_unit)
 	spike_y=y.copy()
 
 	
-	for item in x:
-		if item in start_time:
-			y[item]=1
-
+	
+	# set for axis
 	x_axis=x*unit
 
+	# draw the spikes
 	spike_x=np.arange(-spike_len/2,spike_len/2,unit)
 
 	spike1=np.exp(-np.power(spike_x/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
@@ -77,20 +89,30 @@ def signal_simulator(time, spike_len, mu,sigma,lambd,unit=0.1, plot=False):
 	spike=spike1-spike2
 
 
+	# put spike into axis
 	index=len(start_time)
 	for item in start_time[0:index-2]:
 		spike_y[item:item+spike_len_unit]=spike
 
 
-	
-	# plot
-	if(plot!=False):
-		plt.plot(x_axis,spike_y)
-		plt.show()
-
-
-
 	return x_axis,spike_y
+
+
+#################################################################
+# plot function for spike_time
+
+
+def plot_spike(spike_time,unit=0.1):
+	time=spike_time[-1]
+	
+	x=np.arange(0,time,unit)
+	y=np.zeros(time/unit)
+		
+	for item in x:
+		if item in spike_time:
+			y[item]=1
+
+	return y
 
 
 #################################################################
@@ -116,19 +138,32 @@ def noise(signal,epsilon):
 # Try to simulate the compositions of signals from two cells
 
 
-x1,y1=signal_simulator(300,6,[0,3],[2,2],2,0.1,False)
-x2,y2=signal_simulator(300,6,[0,4],[2,1],2,0.1,False)
+time=300
+spike_len=6
+lambd=2
+shape_parameter=np.array([[0,3],[2,2]])
+shape_parameter2=np.array([[0,4],[2,2]])
 
 
-y=y1+y2
 
-y_n=noise(y,0.1)
-plt.plot(y)
+a=spike_generator(time,spike_len,lambd)
+a2=spike_generator(time,spike_len,lambd)
 
-plt.show()
+pl=plot_spike(a)
+
+#plt.plot(pl[0:50])
 
 plt.plot(y_n)
+
+b,c=waveform_generator(a,spike_len,shape_parameter)
+b2,c2=waveform_generator(a2,spike_len,shape_parameter2)
+
+d=c+c2
+d=noise(d,0.1)
+
+plt.plot(b[0:500],c[0:500])
 plt.show()
+
 
 
 
