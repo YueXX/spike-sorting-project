@@ -138,10 +138,10 @@ def noise(signal,epsilon):
 # Try to simulate the compositions of signals from two cells
 
 
-time=300
-spike_len=6
-lambd=2
-shape_parameter=np.array([[0,3],[2,2]])
+time=1000
+spike_len=20
+lambd=70
+shape_parameter=np.array([[0,2.5],[2,3]])
 shape_parameter2=np.array([[0,4],[2,2]])
 
 
@@ -153,17 +153,30 @@ pl=plot_spike(a)
 
 #plt.plot(pl[0:50])
 
-plt.plot(y_n)
+#plt.show()
 
 b,c=waveform_generator(a,spike_len,shape_parameter)
 b2,c2=waveform_generator(a2,spike_len,shape_parameter2)
 
 d=c+c2
-d=noise(d,0.1)
+d=noise(d,0.01)
 
-plt.plot(b[0:500],c[0:500])
+# plt.plot(d[0:1000])
+# plt.show()
+plt.plot(d[0:5000])
+d=map(abs,d)
+
+
+weights = np.repeat(1, spike_len/0.1)
+
+con=np.convolve(weights,d,'same')
+
+
+con=con/(50)
+
+
+# #print(con[0:200])
+plt.plot(con[0:5000])
 plt.show()
-
-
 
 
