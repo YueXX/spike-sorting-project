@@ -27,29 +27,29 @@ from matplotlib import pyplot as plt
 # Output:
 # two vectors specifies the x-axis of the signal and the y-axis of the signal
 
-def spike_generator(time, spike_len, interval_parameter, unit=0.1):
+def spike_generator(time, spike_len, interval_parameter):
 # Initilization
 	var=0
 	start_time=[]
 	index=0
 # Change variable according to different unit
-	parameter_unit=interval_parameter/unit
-	spike_len_unit=spike_len/unit
-	time_unit=time/unit
+	# parameter_unit=interval_parameter/unit
+	# spike_len_unit=spike_len/unit
+	# time_unit=time/unit
 
 
 # Main loop to generate the time axis
-	while var < time_unit:
-		interval=rand.expovariate(1.0/parameter_unit)
+	while var < time:
+		interval=rand.expovariate(1.0/interval_parameter)
 		interval=int(interval)
 
-		var=var+spike_len_unit+interval		
+		var=var+spike_len+interval		
 		start_time.append(var)
 		
 		index=index+1
 
-	start_time[-1]=time_unit
-	spike_time=np.array(start_time)*unit
+	start_time[-1]=time
+	spike_time=np.array(start_time)
 	
 
 	return spike_time
@@ -57,7 +57,7 @@ def spike_generator(time, spike_len, interval_parameter, unit=0.1):
 
 
 #################################################################
-def waveform_generator(spike_time,spike_len,shape_parameter,unit=0.1):
+def waveform_generator(spike_time,spike_len,shape_parameter):
 	# get shape parameters
 	mu1=shape_parameter[0,0]
 	mu2=shape_parameter[0,1]
@@ -66,23 +66,24 @@ def waveform_generator(spike_time,spike_len,shape_parameter,unit=0.1):
 	sigma2=shape_parameter[1,1]
 
 	# Convert unit
-	start_time=np.array(spike_time)/unit
+	# start_time=np.array(spike_time)/unit
 	time=spike_time[-1]
-	time_unit=time/unit
-	spike_len_unit=spike_len/unit
+	
+	# time_unit=time/unit
+	# spike_len_unit=spike_len/unit
 	
 	# set the length for waveform
-	x=np.arange(time_unit)
-	y=np.zeros(time_unit)
+	x=np.arange(time)
+	y=np.zeros(time)
 	spike_y=y.copy()
 
 	
 	
 	# set for axis
-	x_axis=x*unit
+	x_axis=x
 
 	# draw the spikes
-	spike_x=np.arange(-spike_len/2,spike_len/2,unit)
+	spike_x=np.arange(-spike_len/2,spike_len/2)
 
 	spike1=np.exp(-np.power(spike_x/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
 	spike2=np.exp(-np.power(spike_x/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
@@ -90,9 +91,9 @@ def waveform_generator(spike_time,spike_len,shape_parameter,unit=0.1):
 
 
 	# put spike into axis
-	index=len(start_time)
-	for item in start_time[0:index-2]:
-		spike_y[item:item+spike_len_unit]=spike
+	index=len(spike_time)
+	for item in spike_time[0:index-2]:
+		spike_y[item:item+spike_len]=spike
 
 
 	return x_axis,spike_y
@@ -102,11 +103,11 @@ def waveform_generator(spike_time,spike_len,shape_parameter,unit=0.1):
 # plot function for spike_time
 
 
-def plot_spike(spike_time,unit=0.1):
+def plot_spike(spike_time):
 	time=spike_time[-1]
 	
-	x=np.arange(0,time,unit)
-	y=np.zeros(time/unit)
+	x=np.arange(0,time)
+	y=np.zeros(time)
 		
 	for item in x:
 		if item in spike_time:
