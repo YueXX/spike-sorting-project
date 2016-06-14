@@ -28,20 +28,16 @@ from data_initilization_2D import plot_spike
 
 ############################################################
 # Generate stimulated data
-time=200000
+time=800000
 spike_len=500
 
-lambd1=900
-lambd2=900
-lambd3=900
+lambd1=1200
+lambd2=1200
+lambd3=1200
 
 shape_parameter=np.array([[0,20],[30,30],[2000,2000]])
-shape_parameter2=np.array([[0,-50],[40,20],[500,500]])
-
-shape_parameter3=np.array([[0,30],[30,30],[400,700]])
-
-
-
+shape_parameter2=np.array([[0,-50],[40,20],[1000,1000]])
+shape_parameter3=np.array([[0,30],[30,30],[400,300]])
 
 
 a=spike_generator(time,spike_len,lambd1)
@@ -49,115 +45,62 @@ a2=spike_generator(time,spike_len,lambd2)
 a3=spike_generator(time,spike_len,lambd3)
 
 
-
-
 b,c=waveform_generator(a,spike_len,shape_parameter)
 b2,c2=waveform_generator(a2,spike_len,shape_parameter2)
 b3,c3=waveform_generator(a3,spike_len,shape_parameter3)
 
-
+# Plot data sample 
 plt.plot(c[0:2500])
 plt.plot(c2[0:2500])
 plt.plot(c3[0:2500])
-
-
 plt.show()
 
+# generate a single electron
 d=c+c2+c3
-#d=noise(d,10)
+# add noise
+d=noise(d,10)
+
 
 plt.plot(d[0:25000])
 plt.show()
 
 ##################################################################
-# get convolution
+# apply k-means algorithm
 
-window=spike_len*0.5
-spike=process_spike(d,window,spike_len/2,40)
+# process spike
+window_len=spike_len/2
+take_window_len=spike_len/2
 
-for i in range(3):
-	plt.plot(spike[i])
-plt.show()
+noise_level=40
+aligned_spike=process_spike(d,window_len,take_window_len,noise_level)
 
-
-b,c=k_means_spikeDetection(spike,3,5)
-
-# a=np.array([[1,2],[3,4]])
-# b=np.array([[0,0]])
-# c=distance.cdist(a,b,'euclidean',p=2)
-# print(c)
-
-plt.plot(b[0])
-
-plt.plot(b[1])
-
-plt.plot(b[2])
-
-
-
-plt.show()
-
-plot_kMeans_clusters(3,c)
-# plt.plot(b[0])
-# plt.plot(b[1])
-
+# for i in range(3):
+# 	plt.plot(spike[i])
 # plt.show()
 
+# apply k_means
 
-# x=np.array([1,2,3,4,4,4,4])
-# c=x.argmax(axis=0)
-# print(c)
-# plt.plot(a[1])
-# plt.plot(a[2])
-
-# plt.plot(a[3])
-# plt.plot(a[4])
+num_cluster=3
+interations=10
+center_vectors, classified_spikes=k_means_spikeDetection(aligned_spike,num_cluster,interations)
 
 
-
-# plt.plot(a[5])
-# plt.plot(a[6])
-
-
-# plt.plot(a[7])
-# plt.plot(a[8])
-
-
-#plt.show()
+plot_kMeans_clusters(num_cluster,classified_spikes)
 
 
 
 
 
-# data=a
-# k = 2
-# kmeans = cluster.KMeans(n_clusters=k)
-# kmeans.fit(data)
-
-# labels = kmeans.labels_
-# centroids = kmeans.cluster_centers_
-
-# for i in range(k):
-#     # select only data observations with cluster label == i
-#     ds = data[np.where(labels==i)]
-#     # plot the data observations
-#     plt.plot(ds[:,0],ds[:,1],'o')
-#     # plot the centroids
-#     lines = plt.plot(centroids[i,0],centroids[i,1],'kx')
-#     # make the centroid x's bigger
-#     plt.setp(lines,ms=15.0)
-#     plt.setp(lines,mew=2.0)
-# plt.show()
 
 
-# tel = {'jack': 4098, 'sape': 4139}
-#print(a)
-#print(con[0:1000])
-
-# plt.plot(con[0:1000])
-#plt.show()
 
 
-# scipy.signal.find_peaks_cwt
 
-# signal.argrelmax(y_array, order=5)
+
+
+
+
+
+
+
+
