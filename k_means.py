@@ -26,6 +26,7 @@ from scipy.spatial import distance
 # input: 
 # signal: the input signal
 # window_len: the manually set length for window in convolution
+# take_window_len: chop off length for spike
 # window_height: the manually set height for window in convolution
 # noise_level: the lower bound parameter in the find local maxima function
 
@@ -122,15 +123,14 @@ def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=50):
 
 
 
-
 def plot_kMeans_clusters(num_cluster,classified_spikes):
 
 	for index in range(0,num_cluster):
 		cluster_vector=classified_spikes[classified_spikes[:,-1]==index]
 		number=cluster_vector.shape[0]
 
-		for index2 in range(0,number):
-			plt.plot(cluster_vector[index2])
+		for index in range(0,number):
+			plt.plot(cluster_vector[index])
 
 		plt.show()
 
