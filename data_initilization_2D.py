@@ -65,6 +65,9 @@ def waveform_generator(spike_time,spike_len,shape_parameter):
 	sigma1=shape_parameter[1,0]
 	sigma2=shape_parameter[1,1]
 
+	height1=shape_parameter[2,0]
+	height2=shape_parameter[2,1]
+
 	# Convert unit
 	# start_time=np.array(spike_time)/unit
 	time=spike_time[-1]
@@ -85,8 +88,8 @@ def waveform_generator(spike_time,spike_len,shape_parameter):
 	# draw the spikes
 	spike_x=np.arange(-spike_len/2,spike_len/2)
 
-	spike1=np.exp(-np.power(spike_x/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
-	spike2=np.exp(-np.power(spike_x/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
+	spike1=height1*np.exp(-np.power(spike_x/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
+	spike2=height2*np.exp(-np.power(spike_x/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
 	spike=spike1-spike2
 
 
