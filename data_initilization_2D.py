@@ -2,7 +2,6 @@ import numpy as np
 import random as rand
 from matplotlib import pyplot as plt
 
-#new
 #################################################################################################
 # The following code will generate simulated signals for spike sorting
 
@@ -27,23 +26,17 @@ from matplotlib import pyplot as plt
 # Output:
 # two vectors specifies the x-axis of the signal and the y-axis of the signal
 
-def spike_generator(time, spike_len, interval_parameter):
+def spike_timeline_generator(time,interval_parameter,plot=False,spike_len=100):
 # Initilization
 	var=0
 	start_time=[]
 	index=0
-# Change variable according to different unit
-	# parameter_unit=interval_parameter/unit
-	# spike_len_unit=spike_len/unit
-	# time_unit=time/unit
-
-
 # Main loop to generate the time axis
 	while var < time:
 		interval=rand.expovariate(1.0/interval_parameter)
 		interval=int(interval)
 
-		var=var+spike_len+interval		
+		var=var+interval+spike_len	
 		start_time.append(var)
 		
 		index=index+1
@@ -51,12 +44,44 @@ def spike_generator(time, spike_len, interval_parameter):
 	start_time[-1]=time
 	spike_time=np.array(start_time)
 	
+	x_axis=np.arange(0,time)
+	y=np.zeros(time)
+		
+	for item in x_axis:
+		if item in spike_time:
+			y[item]=1
 
+	if(plot!=False):
+		plt.plot(x_axis,y)
+		plt.show()
 	return spike_time
 	
-
-
 #################################################################
+
+def spike_shape_generator(shape_parameter,plot=False,spike_len=100):
+	mu1=shape_parameter[0,0]
+	mu2=shape_parameter[0,1]
+
+	sigma1=shape_parameter[1,0]
+	sigma2=shape_parameter[1,1]
+
+	height1=shape_parameter[2,0]
+	height2=shape_parameter[2,1]
+
+	spike_x_axis=np.arange(-spike_len/2,spike_len/2)
+
+	spike1=height1*np.exp(-np.power(spike_x_axis/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
+	spike2=height2*np.exp(-np.power(spike_x_axis/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
+	spike_shape=spike1-spike2
+
+	if(plot!=False):
+		plt.plot(spike_shape)
+		plt.show()
+
+	return spike_shape
+
+
+
 def waveform_generator(spike_time,spike_len,shape_parameter):
 	# get shape parameters
 	mu1=shape_parameter[0,0]
@@ -67,7 +92,6 @@ def waveform_generator(spike_time,spike_len,shape_parameter):
 
 	height1=shape_parameter[2,0]
 	height2=shape_parameter[2,1]
-
 	# Convert unit
 	# start_time=np.array(spike_time)/unit
 	time=spike_time[-1]
@@ -80,7 +104,6 @@ def waveform_generator(spike_time,spike_len,shape_parameter):
 	y=np.zeros(time)
 	spike_y=y.copy()
 
-	
 	
 	# set for axis
 	x_axis=x
@@ -138,6 +161,34 @@ def noise(signal,epsilon):
 
 
 ##################################################################
+# Multi-cell/electrons generators
+# Question: same cell in different electrons, same delay or different delay?
+def multi_electrons_generator(num_cell,num_electron):
+
+# set the boolean matrix for whether an electron can detect a single cell
+	boolean=np.random.randint(0,1,size=(num_electron,num_cell))
+
+# set the matrix for delay parameter 
+	delay=np.random.randint(0,100,size=(num_electron,num_cell))
+
+# set the matrix for spike shape
+	spike_shape_parameter=np.zeros((num_electron,num_cell))
+
+	for i in range(num_cell):
+		for j in range(num_electron):
+			
+			mu1=random.randint(-50,50)
+			mu2=random.randint(-50,50)
+			sigma1=random.randint(-10,10)
+			sigma2=random.randint(-10,10)
+			spike_shape_parameter[i,j]=np.array([[mu1,mu2],[sigma1,sigma2]])
+
+	
+
+
+
+
+
 # Try for some data: 
 # Try to simulate the compositions of signals from two cells
 
@@ -182,5 +233,4 @@ def noise(signal,epsilon):
 # # #print(con[0:200])
 # plt.plot(con[0:5000])
 # plt.show()
-
 
