@@ -1,6 +1,7 @@
 import numpy as np
 import random as rand
 from matplotlib import pyplot as plt
+import random as rand
 
 #################################################################################################
 # The following code will generate simulated signals for spike sorting
@@ -32,7 +33,7 @@ def spike_timeline_generator(time,interval_parameter,plot=False,spike_len=100):
 	start_time=[]
 	index=0
 # Main loop to generate the time axis
-	while var < time:
+	while var < time-spike_len:
 		interval=rand.expovariate(1.0/interval_parameter)
 		interval=int(interval)
 
@@ -54,6 +55,7 @@ def spike_timeline_generator(time,interval_parameter,plot=False,spike_len=100):
 	if(plot!=False):
 		plt.plot(x_axis,y)
 		plt.show()
+
 	return spike_time
 	
 #################################################################
@@ -82,7 +84,7 @@ def spike_shape_generator(shape_parameter,plot=False,spike_len=100):
 
 
 
-def waveform_generator(spike_time,spike_len,shape_parameter):
+def waveform_generator(spike_time,shape_parameter,spike_len=100):
 	# get shape parameters
 	mu1=shape_parameter[0,0]
 	mu2=shape_parameter[0,1]
@@ -121,8 +123,8 @@ def waveform_generator(spike_time,spike_len,shape_parameter):
 	for item in spike_time[0:index-2]:
 		spike_y[item:item+spike_len]=spike
 
-
-	return x_axis,spike_y
+	spike_y=np.array(spie)
+	return spike_y
 
 
 #################################################################
@@ -163,28 +165,49 @@ def noise(signal,epsilon):
 ##################################################################
 # Multi-cell/electrons generators
 # Question: same cell in different electrons, same delay or different delay?
-def multi_electrons_generator(num_cell,num_electron):
-
+def multi_electrons_generator(num_cell,num_electron,time):
+	
 # set the boolean matrix for whether an electron can detect a single cell
 	boolean=np.random.randint(0,1,size=(num_electron,num_cell))
 
-# set the matrix for delay parameter 
-	delay=np.random.randint(0,100,size=(num_electron,num_cell))
-
-# set the matrix for spike shape
-	spike_shape_parameter=np.zeros((num_electron,num_cell))
+# set the matrix for spike in cell in different electron
+	spike_shape_parameter=np.zeros((num_electron,num_cell,time))
+	print(spike_shape_parameter.shape)
 
 	for i in range(num_cell):
+		interval_parameter=rand.randint(50,400)
+		
+		spike_timeline=spike_timeline_generator(time,interval_parameter,plot=False,spike_len=100)
+
+
 		for j in range(num_electron):
+			delay=np.random.randint(0,100)
+			spike_timeline=spike_timeline+delay
+
+			spike_timeline[-1]=time
+
+			mu1=rand.randint(-50,50)
+			mu2=rand.randint(-50,50)
+			sigma1=rand.randint(-10,10)
+			sigma2=rand.randint(-10,10)
+			height1=rand.randint(1000,2000)
+			height2=rand.randint(1000,2000)
 			
-			mu1=random.randint(-50,50)
-			mu2=random.randint(-50,50)
-			sigma1=random.randint(-10,10)
-			sigma2=random.randint(-10,10)
-			spike_shape_parameter[i,j]=np.array([[mu1,mu2],[sigma1,sigma2]])
+			shape_parameter=np.array([[mu1,mu2],[sigma1,sigma2],[height1,height2]])
+			
+			spike_shape_parameter[i,j]=waveform_generator(spike_timeline,shape_parameter,spike_len=100)
+			
+			
+			print(spike_timeline[-1])
+# get the matrix for different electrons
+	matrix_electron=spike_shape_parameter.sum(axis=0)
+	return matrix_electron
 
-	
 
+
+
+
+#https://sas.elluminate.com/m.jnlp?sid=2012174&username=&password=M.0CFA09E929AFC7FF0C2F26893414D5
 
 
 
