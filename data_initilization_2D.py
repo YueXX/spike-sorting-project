@@ -141,6 +141,9 @@ def noise(signal,epsilon):
 ##################################################################
 # Multi-cell/electrons generators
 # Question: same cell in different electrons, same delay or different delay?
+# Generate 
+
+
 def multi_electrons_generator(num_cell,num_electron,time):
 	
 # set the boolean matrix for whether an electron can detect a single cell
@@ -177,7 +180,7 @@ def multi_electrons_generator(num_cell,num_electron,time):
 			print(spike_timeline[-1])
 # get the matrix for different electrons
 	matrix_electron=spike_shape_parameter.sum(axis=1)
-	return matrix_electron
+	return matrix_electron, boolean, spike_shape_parameter
 
 
 

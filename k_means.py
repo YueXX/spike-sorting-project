@@ -32,7 +32,6 @@ from scipy.spatial import distance
 
 # output: the aligned spikes in a 2-D array detected_spikes
 
-
 def process_spike(signal, window_len, take_window_len,noise_level, window_height=2):
 	
 	################################################
@@ -45,11 +44,12 @@ def process_spike(signal, window_len, take_window_len,noise_level, window_height
 	weights = np.repeat(window_height, window_len)
 	convolution=np.convolve(weights,signal_abs,'same')
 	convolution=convolution/window_len
-	# plt.plot(convolution)
-	# plt.show()
+
+	plt.plot(convolution)
+	plt.show()
 
 	# Step 3: find the indices of local maxima of the convolution
-	local_max=detect_peaks(convolution, mph=noise_level*5, mpd=window_len/2, show=True)
+	local_max=detect_peaks(convolution, mph=noise_level*5, mpd=window_len, show=True)
 
 	# Step 4: locate/save spike vectors
 	m=len(local_max)
@@ -109,26 +109,20 @@ def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=50):
 			print(index,'has',number)
 
 			# Get new center by averaging	
-			center_vectors_label[index]=1.0/number*np.sum(cluster_vector,axis=0)
-			
+			center_vectors_label[index]=1.0/number*np.sum(cluster_vector,axis=0)			
 			plt.plot(center_vectors_label[index])
-			
 		center_vectors=np.delete(center_vectors_label,-1,1)
 		plt.show()
-
 
 	return center_vectors,classified_spikes
 
 
 
-
-
 def plot_kMeans_clusters(num_cluster,classified_spikes):
-
 	for index in range(0,num_cluster):
 		cluster_vector=classified_spikes[classified_spikes[:,-1]==index]
 		number=cluster_vector.shape[0]
-
+		plt.figure()
 		for index in range(0,number):
 			plt.plot(cluster_vector[index])
 

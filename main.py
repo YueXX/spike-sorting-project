@@ -20,7 +20,7 @@ from k_means import plot_kMeans_clusters
 # Try for some data: 
 # Try to simulate the compositions of signals from two cells
 
-from data_initilization_2D import spike_generator
+from data_initilization_2D import spike_timeline_generator
 from data_initilization_2D import waveform_generator
 from data_initilization_2D import noise
 from data_initilization_2D import plot_spike
@@ -28,7 +28,7 @@ from data_initilization_2D import plot_spike
 
 ############################################################
 # Generate stimulated data
-time=800000
+time=80000
 spike_len=500
 
 lambd1=1200
@@ -40,14 +40,18 @@ shape_parameter2=np.array([[0,-50],[40,20],[1000,1000]])
 shape_parameter3=np.array([[0,30],[30,30],[400,300]])
 
 
-a=spike_generator(time,spike_len,lambd1)
-a2=spike_generator(time,spike_len,lambd2)
-a3=spike_generator(time,spike_len,lambd3)
+a=spike_timeline_generator(time,lambd1,False,spike_len)
+a2=spike_timeline_generator(time,lambd2,False,spike_len)
+a3=spike_timeline_generator(time,lambd3, False,spike_len)
 
 
-b,c=waveform_generator(a,spike_len,shape_parameter)
-b2,c2=waveform_generator(a2,spike_len,shape_parameter2)
-b3,c3=waveform_generator(a3,spike_len,shape_parameter3)
+c=waveform_generator(a,shape_parameter,spike_len)
+c2=waveform_generator(a2,shape_parameter2,spike_len)
+c3=waveform_generator(a3,shape_parameter3,spike_len)
+
+print(c.shape)
+
+
 
 # Plot data sample 
 plt.plot(c[0:2500])
