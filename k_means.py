@@ -1,3 +1,14 @@
+
+# how to apply k-means to different electrons:
+# 1. use multi-electrons generator to generate a signal matrix of 2 electrons and 
+# multiple cells
+# 2. apply spike process on the first row of the signal matrix
+# 3. locate spikes on the other rows using the same information from step 2
+# 4. concate the above result matrix
+# 5. apply k-means to the final matrix
+
+
+
 import numpy as np
 import random as rand
 from matplotlib import pyplot as plt

@@ -138,13 +138,36 @@ def noise(signal,epsilon):
 	return output
 
 
+def spike_shape_generator(shape_parameter,plot=False,spike_len=100):
+	mu1=shape_parameter[0,0]
+	mu2=shape_parameter[0,1]
+
+	sigma1=shape_parameter[1,0]
+	sigma2=shape_parameter[1,1]
+
+	height1=shape_parameter[2,0]
+	height2=shape_parameter[2,1]
+
+	spike_x_axis=np.arange(-spike_len/2,spike_len/2)
+
+	spike1=height1*np.exp(-np.power(spike_x_axis/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
+	spike2=height2*np.exp(-np.power(spike_x_axis/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
+	spike_shape=spike1-spike2
+
+	if(plot!=False):
+		plt.plot(spike_shape)
+		plt.show()
+
+	return spike_shape
+
+
 ##################################################################
 # Multi-cell/electrons generators
 # Question: same cell in different electrons, same delay or different delay?
 # Generate 
 
 
-def multi_electrons_generator(num_cell,num_electron,time):
+def multi_electrons_generator(num_electron,num_cell,time):
 	
 # set the boolean matrix for whether an electron can detect a single cell
 	boolean=np.random.randint(0,2,size=(num_electron,num_cell))
@@ -154,62 +177,43 @@ def multi_electrons_generator(num_cell,num_electron,time):
 	print(spike_shape_parameter.shape)
 
 	for j in range(num_cell):
-		interval_parameter=rand.randint(50,400)
+		interval_parameter=rand.randint(50,100)
 		
 		spike_timeline=spike_timeline_generator(time,interval_parameter,plot=False,spike_len=100)
 
 
 		for i in range(num_electron):
-			delay=np.random.randint(0,100)
+			delay=np.random.randint(1,10)
 			spike_timeline=spike_timeline+delay
 
 			spike_timeline[-1]=time
 
-			mu1=rand.randint(-50,50)
-			mu2=rand.randint(-50,50)
-			sigma1=rand.randint(-10,10)
-			sigma2=rand.randint(-10,10)
+			mu1=rand.randint(1,20)
+			mu2=rand.randint(-20,1)
+			sigma1=rand.randint(1,10)
+			sigma2=rand.randint(-10,-1)
 			height1=rand.randint(1000,2000)
 			height2=rand.randint(1000,2000)
 			
 			shape_parameter=np.array([[mu1,mu2],[sigma1,sigma2],[height1,height2]])
-			
+			spike_shape_generator(shape_parameter,plot=True)
+
 			signal=waveform_generator(spike_timeline,shape_parameter,spike_len=100)*boolean[i,j]
-			spike_shape_parameter[i,j]=noise(signal,epsilon=50)
+			spike_shape_parameter[i,j]=noise(signal,epsilon=0)
 			
-			print(spike_timeline[-1])
+			
 # get the matrix for different electrons
+	
 	matrix_electron=spike_shape_parameter.sum(axis=1)
-	return matrix_electron, boolean, spike_shape_parameter
+	
+	return matrix_electron
+	
 
 
 
 
 
 #https://sas.elluminate.com/m.jnlp?sid=2012174&username=&password=M.0CFA09E929AFC7FF0C2F26893414D5
-
-
-# def spike_shape_generator(shape_parameter,plot=False,spike_len=100):
-# 	mu1=shape_parameter[0,0]
-# 	mu2=shape_parameter[0,1]
-
-# 	sigma1=shape_parameter[1,0]
-# 	sigma2=shape_parameter[1,1]
-
-# 	height1=shape_parameter[2,0]
-# 	height2=shape_parameter[2,1]
-
-# 	spike_x_axis=np.arange(-spike_len/2,spike_len/2)
-
-# 	spike1=height1*np.exp(-np.power(spike_x_axis/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
-# 	spike2=height2*np.exp(-np.power(spike_x_axis/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
-# 	spike_shape=spike1-spike2
-
-# 	if(plot!=False):
-# 		plt.plot(spike_shape)
-# 		plt.show()
-
-# 	return spike_shape
 
 
 

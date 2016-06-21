@@ -22,34 +22,30 @@ from k_means import plot_kMeans_clusters
 
 from data_initilization_2D import spike_timeline_generator
 from data_initilization_2D import waveform_generator
-from data_initilization_2D import spike_shape_generator
+#from data_initilization_2D import spike_shape_generator
 
 from data_initilization_2D import noise
 from data_initilization_2D import plot_spike
 from data_initilization_2D import multi_electrons_generator
 ##################################################################
 
-x=spike_timeline_generator(1000,20,False)
 
-print(x)
-
-
-shape_parameter=np.array([[-50,40],[30,30],[2000,2000]])
+# shape_parameter=np.array([[-50,40],[30,30],[2000,2000]])
 
 
-num_cell=3
-num_electron=2
+num_cell=2
+num_electron=1
+
 
 time=2500
-mat=multi_electrons_generator(num_cell,num_electron,time)
+mat=multi_electrons_generator(num_electron,num_cell,time)
 
-#print(a*4)
-#print(mat)
-a=(mat[0,:])
-plt.plot(a)
+c=mat[0,:]
+plt.plot(c)
+# d=mat[1,:]
+# plt.plot(d)
+
 plt.show()
-
-
 
 
 
