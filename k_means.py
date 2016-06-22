@@ -1,12 +1,4 @@
 
-# how to apply k-means to different electrons:
-# 1. use multi-electrons generator to generate a signal matrix of 2 electrons and 
-# multiple cells
-# 2. apply spike process on the first row of the signal matrix
-# 3. locate spikes on the other rows using the same information from step 2
-# 4. concate the above result matrix
-# 5. apply k-means to the final matrix
-
 
 
 import numpy as np
@@ -20,6 +12,8 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
 from scipy.spatial import distance
+import matplotlib as mpl
+
 #########################################################
 # The following code apply K-means algorithms to signal
 # by three steps: spike detection, alignment of spikes and k-means algorithm
@@ -121,21 +115,24 @@ def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=50):
 
 			# Get new center by averaging	
 			center_vectors_label[index]=1.0/number*np.sum(cluster_vector,axis=0)			
-			plt.plot(center_vectors_label[index])
+			#plt.plot(center_vectors_label[index])
 		center_vectors=np.delete(center_vectors_label,-1,1)
-		plt.show()
+		#plt.show()
 
 	return center_vectors,classified_spikes
 
 
 
 def plot_kMeans_clusters(num_cluster,classified_spikes):
-	for index in range(0,num_cluster):
-		cluster_vector=classified_spikes[classified_spikes[:,-1]==index]
+	cmap = mpl.cm.autumn
+
+	for index_i in range(0,num_cluster):
+		cluster_vector=classified_spikes[classified_spikes[:,-1]==index_i]
 		number=cluster_vector.shape[0]
-		plt.figure()
-		for index in range(0,number):
-			plt.plot(cluster_vector[index])
+
+		for index_j in range(0,number):
+			#plt.subplot(index)
+			plt.plot(cluster_vector[index_j],color=cmap(index_i*1.5))
 
 		plt.show()
 
