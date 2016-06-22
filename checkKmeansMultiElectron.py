@@ -59,28 +59,70 @@ signal1=noise(signal1,5)
 signal2=c3+c4
 signal2=noise(signal2,5)
 
-plt.plot(signal1[0:9000])
-plt.show()
+# plt.plot(signal1[0:9000])
+# plt.show()
 
-plt.plot(signal2[0:9000])
-plt.show()
-
-
+# plt.plot(signal2[0:9000])
+# plt.show()
 
 
 
+# how to apply k-means to different electrons:
+# 1. use multi-electrons generator to generate a signal matrix of 2 electrons and 
+# multiple cells
+# 2. apply convolution on the first row of the signal matrix to get the spike location
+# 3. locate spikes on the other rows using the same information from step 2
+# 4. concate the above result matrix
+# 5. apply k-means to the final matrix
+
+
+# step 2:
+
+window_len=spike_len/2
+take_window_len=spike_len/2
+
+signal_abs=map(abs,signal1)
+	
+# Step 2: take convolution of the absolute value
+window_height=2
+weights = np.repeat(window_height, window_len)
+convolution=np.convolve(weights,signal_abs,'same')
+convolution=convolution/window_len
+
+# plt.plot(convolution[0:2000])
+# plt.show()
+
+
+# get the location of spikes in signal 1
+noise_level=100
+local_max=detect_peaks(convolution, mph=noise_level*5, mpd=window_len, show=True)
+
+
+# Step 3: get the spikes in signal1 and signal2 using information from step 2 
+m=len(local_max)
+n=take_window_len
+detected_spikes1=np.zeros((m,n))
+detected_spikes2=np.zeros((m,n))
+
+index=0
+for item in local_max:
+	detected_spikes1[index]=signal1[item-take_window_len/2:item+take_window_len/2]
+	detected_spikes2[index]=signal2[item-take_window_len/2:item+take_window_len/2]
+	index=index+1
 
 
 
+print(detected_spikes1.shape)
+print(detected_spikes2.shape)
 
+# step 4: concatenate the above two matrices
 
+final_matrix=np.concatenate((detected_spikes1, detected_spikes2), axis=1)
 
-
-
-
-
-
-
+# Step 5: apply Kmeans
+num_cluster=2
+center_vectors,classified_spikes=k_means_spikeDetection(final_matrix,num_cluster,iterations=10)
+plot_kMeans_clusters(num_cluster,classified_spikes)
 
 
 
