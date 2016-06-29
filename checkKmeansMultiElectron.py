@@ -27,21 +27,38 @@ from data_initilization_2D import spike_timeline_generator
 from data_initilization_2D import waveform_generator
 from data_initilization_2D import noise
 from data_initilization_2D import plot_spike
+from data_initilization_2D import spike_shape_generator
 #from k_means import detect_spike
 
 ############################################################
 # Generate stimulated data
-time=80000
-spike_len=500
+time=100000
+spike_len=200
 
 lambd1=1200
 lambd2=800
 
 
-shape_parameter=np.array([[0,20],[30,30],[2000,2000]])
-shape_parameter2=np.array([[0,-50],[40,20],[1000,1000]])
-shape_parameter3=np.array([[0,30],[30,30],[1000,800]])
-shape_parameter4=np.array([[0,-20],[25,30],[2000,1500]])
+shape_parameter=np.array([[0,20],[30,30],[6000,6000]])
+shape_parameter2=np.array([[0,-15],[40,20],[3500,3500]])
+shape_parameter3=np.array([[0,20],[30,30],[2000,2000]])
+shape_parameter4=np.array([[0,-40],[25,30],[1000,1000]])
+
+
+sig1=spike_shape_generator(shape_parameter,plot=False)
+sig2=spike_shape_generator(shape_parameter2,plot=False)
+
+sig3=spike_shape_generator(shape_parameter3,plot=False)
+sig4=spike_shape_generator(shape_parameter4,plot=False)
+
+
+signa_1=np.concatenate((sig1,sig3), axis=0)
+signa_2=np.concatenate((sig2,sig4), axis=0)
+
+plt.plot(signa_1)
+plt.plot(signa_2)
+plt.savefig('original_signal')
+
 
 a=spike_timeline_generator(time,lambd1,False,spike_len)
 a2=spike_timeline_generator(time,lambd2,False,spike_len)
@@ -94,7 +111,7 @@ convolution=convolution/window_len
 
 
 # get the location of spikes in signal 1
-noise_level=100
+noise_level=200
 local_max=detect_peaks(convolution, mph=noise_level*5, mpd=window_len, show=True)
 
 
@@ -112,16 +129,34 @@ for item in local_max:
 
 
 
-print(detected_spikes1.shape)
-print(detected_spikes2.shape)
+# Step 3.1: align spikes 
+k=rand.randint(0,m-1)
+max_location1=detected_spikes1[k].argmax(axis=0)
+max_location2=detected_spikes2[k].argmax(axis=0)
+
+for i in range(0,m-1):
+	spike_max_location2=detected_spikes2[i].argmax(axis=0)
+	distance2=max_location2-spike_max_location2
+	detected_spikes2[i]=np.roll(detected_spikes2[i],distance2)
+
+	spike_max_location1=detected_spikes1[i].argmax(axis=0)
+	distance1=max_location1-spike_max_location1
+	detected_spikes1[i]=np.roll(detected_spikes1[i],distance1)
+
 
 # step 4: concatenate the above two matrices
 
 final_matrix=np.concatenate((detected_spikes1, detected_spikes2), axis=1)
-
+print(final_matrix.shape)
 # Step 5: apply Kmeans
 num_cluster=2
-center_vectors,classified_spikes=k_means_spikeDetection(final_matrix,num_cluster,iterations=10)
+center_vectors,classified_spikes=k_means_spikeDetection(final_matrix,num_cluster,iterations=30)
+
+plt.plot(center_vectors[0])
+plt.plot(center_vectors[1])
+plt.savefig('Found_center')
+
+
 plot_kMeans_clusters(num_cluster,classified_spikes)
 
 
