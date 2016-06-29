@@ -143,6 +143,9 @@ def noise(signal,epsilon):
 # Input: 
 # num_electron : number of electrons
 # num_cell: number of cells
+# time: total time to generate signal
+# noise_level: control the level of  noise, set between 0 to 1.0
+# overlap_level: control the level of overlap, set from spike_len 
 
 # Output: 
 # boolean: a matrix of size num_electron times num_cell, the entries of boolean is 1/0
@@ -197,13 +200,16 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 
 			shape_parameter=np.array([[mu1,mu2],[sigma1,sigma2],[height1,height2]])
 
-			signal=waveform_generator(spike_timeline,shape_parameter,True,spike_len=100)*boolean[i,j]
+			signal=waveform_generator(spike_timeline,shape_parameter,False,spike_len=100)*boolean[i,j]
 			spike_shape_parameter[i,j]=noise(signal,epsilon=(height1+height2)*noise_level)
 			
 			
 # get the matrix for different electrons
 	matrix_electron=spike_shape_parameter.sum(axis=1)
 	return matrix_electron, boolean, spike_shape_parameter
+
+
+
 
 
 time=10000
@@ -214,10 +220,11 @@ shape_parameter=np.array([[45,-45],[1,1],[100,500]])
 spike=waveform_generator(time1,shape_parameter,False)
 
 
-a,b,c=multi_electrons_generator(1,4,10000,0.1,200)
+a,b,c=multi_electrons_generator(1,4,10000,0,1000)
+print(b)
 
-a=np.transpose(a)
-k=a
+a=np.transpose(a[0])
+k=a[0:5000]
 plt.plot(k)
 plt.show()
 
