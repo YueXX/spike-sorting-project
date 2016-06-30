@@ -227,7 +227,7 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 					signal=0
 				ax[i].plot(signal,color=color1[j])
 				ax[i].set_title('Electron %s can receive signals from %s cells' %(i,number))
-		plt.savefig('image/SeperateSignalsOfElectron.eps')
+		plt.savefig('image/SeperateSignalsOfElectron.png')
 
 
 
@@ -236,7 +236,7 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 			signal=np.array(matrix_electron[i])
 			ax2[i].plot(signal,color='k')
 			ax2[i].set_title('Signals of Electron %s' %(i))
-		plt.savefig('image/ComposedSignalsOfElectron.eps')
+		plt.savefig('image/ComposedSignalsOfElectron.png')
 
 
 
