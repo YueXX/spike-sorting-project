@@ -1,12 +1,18 @@
 #################################################################################################
 # This python file will generate simulated signals for spike sorting
-
+# the file consists of 4 functions: 
 # spike_timeline_generator will generate the appear time nodes for a single cell
+# wave_form_generator will generate the signals corresponding to a certain time nodes
+# noise function will add noise to certain signal
+# multi_electrons_generator will generate signals for multiple cells that can be detected
+# in different electrons
 
 import numpy as np
 import random as rand
 from matplotlib import pyplot as plt
 import random as rand
+from matplotlib.pyplot import cm 
+
 
 
 #######################################################################################
@@ -47,12 +53,12 @@ def spike_timeline_generator(time,interval_parameter,plot=False,spike_len=100):
 		
 	for item in x_axis:
 		if item in spike_time:
-			y[item]=1
+			y[item]=2
 
 	if(plot!=False):
 		plt.plot(x_axis,y)
+		plt.axis([0,time,0,5])
 		plt.show()
-
 	return spike_time
 
 
@@ -104,6 +110,7 @@ def waveform_generator(spike_timeline,shape_parameter,plot=False,spike_len=100):
 	spike=spike1-spike2
 
 	if(plot!=False):
+		
 		plt.plot(spike)
 		plt.show()
 
@@ -156,22 +163,21 @@ def noise(signal,epsilon):
 
 # spike_shape_parameter: a 3-D array of size num_electron* num_cell*time
 # suppose we see the matrix as a 2-D matrix. Then each element in the matrix
-# is an array of length time is the signal shape for a certain cell 
+# is an array of length time is the signal for a certain cell 
 # in a certain electron
 
-
-
-def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_level):
-	
+def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_level,plot=False):
 # set the boolean matrix for whether an electron can detect a single cell
+	# random set
 	boolean=np.random.randint(0,2,size=(num_electron,num_cell))
+	num_eachElectron=boolean.sum(axis=1)
 
 # set the matrix that records the signal delays for each cell in different electrons
 	matrix_delay=np.zeros([num_electron,num_cell])
 
 # set the matrix for spike in cell in different electron
 	spike_shape_parameter=np.zeros((num_electron,num_cell,time))
-	print(spike_shape_parameter.shape)
+
 
 	for j in range(num_cell):
 		interval_parameter=overlap_level
@@ -180,14 +186,11 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 
 		for i in range(num_electron):
 			
-			delay=np.random.randint(1,10)
+			delay=np.random.randint(1,100)
 			matrix_delay[i,j]=delay
-		
 			spike_timeline=spike_timeline+delay
-
 			spike_timeline[-1]=time
 
-			
 			# set random spike shape parameter
 			loc=np.random.permutation([-1,1])
 			mu1=loc[0]*rand.randint(10,40)
@@ -201,36 +204,69 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 			shape_parameter=np.array([[mu1,mu2],[sigma1,sigma2],[height1,height2]])
 
 			signal=waveform_generator(spike_timeline,shape_parameter,False,spike_len=100)*boolean[i,j]
-			spike_shape_parameter[i,j]=noise(signal,epsilon=(height1+height2)*noise_level)
-			
-			
-# get the matrix for different electrons
-	matrix_electron=spike_shape_parameter.sum(axis=1)
+			spike_shape_parameter[i,j]=noise(signal,epsilon=(height1+height2)/2*noise_level)
+			# get the matrix for different electrons
+			matrix_electron=spike_shape_parameter.sum(axis=1)
+
+
+		# add plot 
+	if(plot!=False):
+		color1=cm.rainbow(np.linspace(0,1,num_cell))
+		#color2=cm.rainbow(np.linspace(num_cell+1,1,num_electron))
+
+		f,ax=plt.subplots(num_electron,sharex=True, sharey=True)
+	
+
+		for i in range(num_electron):
+			number=num_eachElectron[i]
+
+			for j in range(num_cell):
+				if(boolean[i,j]!=0):
+					signal=np.array(spike_shape_parameter[i,j])
+				else:
+					signal=0
+				ax[i].plot(signal,color=color1[j])
+				ax[i].set_title('Electron %s can receive signals from %s cells' %(i,number))
+		plt.savefig('image/SeperateSignalsOfElectron.eps')
+
+
+
+		f2,ax2=plt.subplots(num_electron,sharex=True, sharey=True)
+		for i in range(num_electron):
+			signal=np.array(matrix_electron[i])
+			ax2[i].plot(signal,color='k')
+			ax2[i].set_title('Signals of Electron %s' %(i))
+		plt.savefig('image/ComposedSignalsOfElectron.eps')
+
+
+
 	return matrix_electron, boolean, spike_shape_parameter
 
 
 
-
+#################################################################################
+# A test for the above functions 
 
 time=10000
 interval_parameter=500
-time1=spike_timeline_generator(time,interval_parameter)
+time1=spike_timeline_generator(time,interval_parameter,False)
 
 shape_parameter=np.array([[45,-45],[1,1],[100,500]])
 spike=waveform_generator(time1,shape_parameter,False)
 
-
-a,b,c=multi_electrons_generator(1,4,10000,0,1000)
-print(b)
-
-a=np.transpose(a[0])
-k=a[0:5000]
-plt.plot(k)
-plt.show()
+a,b,c=multi_electrons_generator(5,5,10000,0.01,1000,True)
 
 
-# Try for some data: 
-# Try to simulate the compositions of signals from two cells
+
+
+
+
+
+
+
+
+
+
 
 
 
