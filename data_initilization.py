@@ -151,8 +151,14 @@ def noise(signal,epsilon):
 # num_electron : number of electrons
 # num_cell: number of cells
 # time: total time to generate signal
+# delay: True is to have random delay
 # noise_level: control the level of  noise, set between 0 to 1.0
 # overlap_level: control the level of overlap, set from spike_len 
+# boolean: True is to set random cells appearance in electron, False is not
+# let the electron can detect all cells
+# plot: True to plot  
+
+
 
 # Output: 
 # boolean: a matrix of size num_electron times num_cell, the entries of boolean is 1/0
@@ -166,10 +172,15 @@ def noise(signal,epsilon):
 # is an array of length time is the signal for a certain cell 
 # in a certain electron
 
-def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_level,plot=False):
+def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level=0.01,overlap_level=1000,boolean=False,plot=True):
 # set the boolean matrix for whether an electron can detect a single cell
 	# random set
-	boolean=np.random.randint(0,2,size=(num_electron,num_cell))
+	
+	if(boolean!=False):
+		boolean=np.random.randint(0,2,size=(num_electron,num_cell))
+	else:
+		boolean=np.ones((num_electron,num_cell))
+	
 	num_eachElectron=boolean.sum(axis=1)
 
 # set the matrix that records the signal delays for each cell in different electrons
@@ -186,8 +197,11 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 
 		for i in range(num_electron):
 			
-			delay=np.random.randint(1,100)
-			matrix_delay[i,j]=delay
+			if(delay==True):
+				delay=np.random.randint(1,100)
+				matrix_delay[i,j]=delay
+			else:
+				delay=0
 			spike_timeline=spike_timeline+delay
 			spike_timeline[-1]=time
 
@@ -212,7 +226,6 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 		# add plot 
 	if(plot!=False):
 		color1=cm.rainbow(np.linspace(0,1,num_cell))
-		#color2=cm.rainbow(np.linspace(num_cell+1,1,num_electron))
 
 		f,ax=plt.subplots(num_electron,sharex=True, sharey=True)
 	
@@ -223,20 +236,25 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 			for j in range(num_cell):
 				if(boolean[i,j]!=0):
 					signal=np.array(spike_shape_parameter[i,j])
+					#signal=signal[0:10000]
 				else:
 					signal=0
+
 				ax[i].plot(signal,color=color1[j])
 				ax[i].set_title('Electron %s can receive signals from %s cells' %(i,number))
-		plt.savefig('image/SeperateSignalsOfElectron.png')
+		#plt.savefig('image/SeperateSignalsOfElectron.png')
+		plt.show()
 
 
 
 		f2,ax2=plt.subplots(num_electron,sharex=True, sharey=True)
 		for i in range(num_electron):
 			signal=np.array(matrix_electron[i])
-			ax2[i].plot(signal,color='k')
+			#signal=signal[0:10000]
+			ax2[i].plot(signal,color='b')
 			ax2[i].set_title('Signals of Electron %s' %(i))
-		plt.savefig('image/ComposedSignalsOfElectron.png')
+		#plt.savefig('image/ComposedSignalsOfElectron.png')
+		plt.show()
 
 
 
@@ -245,17 +263,17 @@ def multi_electrons_generator(num_electron,num_cell,time,noise_level,overlap_lev
 
 
 #################################################################################
-# A test for the above functions 
+# # A test for the above functions 
 
-time=10000
-interval_parameter=500
-time1=spike_timeline_generator(time,interval_parameter,False)
+# time=10000
+# interval_parameter=500
+# time1=spike_timeline_generator(time,interval_parameter,False)
 
-shape_parameter=np.array([[45,-45],[1,1],[100,500]])
-spike=waveform_generator(time1,shape_parameter,False)
+# shape_parameter=np.array([[45,-45],[1,1],[100,500]])
+# spike=waveform_generator(time1,shape_parameter,False)
 
-a,b,c=multi_electrons_generator(5,5,10000,0.01,1000,True)
 
+# a,b,c=multi_electrons_generator(5,5,10000,0.01,1000,True,True)
 
 
 

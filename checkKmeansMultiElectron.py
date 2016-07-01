@@ -23,11 +23,12 @@ from k_means import plot_kMeans_clusters
 # Try for some data: 
 # Try to simulate the compositions of signals from two cells
 
-from data_initilization_2D import spike_timeline_generator
-from data_initilization_2D import waveform_generator
-from data_initilization_2D import noise
-from data_initilization_2D import plot_spike
-from data_initilization_2D import spike_shape_generator
+from data_initilization import spike_timeline_generator
+from data_initilization import waveform_generator
+from data_initilization import noise
+from data_initilization import plot_spike
+from data_initilization import spike_shape_generator
+from data_initilization import multi_electrons_generator
 #from k_means import detect_spike
 
 ############################################################
