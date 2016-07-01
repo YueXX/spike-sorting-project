@@ -105,7 +105,7 @@ def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100)
 ########################################################
 #test data
 num_electron=2
-num_cell=3
+num_cell=2
 time=30000
 noise_level=0.01
 overlap_level=1000
@@ -121,7 +121,7 @@ matrix_electron, boolean, spike_shape_parameter=multi_electrons_generator(num_el
 
 a=process_spike_multi(matrix_electron,threshold)
 
-num_cluster=3
+num_cluster=2
 interations=20
 
 	# apply k-means
