@@ -130,6 +130,7 @@ center_vectors, classified_spikes=k_means_spikeDetection(a,num_cluster,interatio
 	# plot result
 plot_kMeans_clusters(classified_spikes,center_vectors,num_cluster)
 
+print('Ahhhh')
 
 
 
