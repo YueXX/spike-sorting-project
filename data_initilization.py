@@ -167,15 +167,15 @@ def noise(signal,epsilon):
 # matrix_electron: a matrix of size num_electron*time 
 # each row of this matrix is the stimulated signal of a certain electron
 
-# spike_shape_parameter: a 3-D array of size num_electron* num_cell*time
+# signal_cell_electron: a 3-D array of size num_electron* num_cell*time
 # suppose we see the matrix as a 2-D matrix. Then each element in the matrix
 # is an array of length time is the signal for a certain cell 
 # in a certain electron
 
+
 def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level=0.01,overlap_level=1000,boolean=False,plot=True):
+
 # set the boolean matrix for whether an electron can detect a single cell
-	# random set
-	
 	if(boolean!=False):
 		boolean=np.random.randint(0,2,size=(num_electron,num_cell))
 	else:
@@ -186,8 +186,11 @@ def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level
 # set the matrix that records the signal delays for each cell in different electrons
 	matrix_delay=np.zeros([num_electron,num_cell])
 
-# set the matrix for spike in cell in different electron
-	spike_shape_parameter=np.zeros((num_electron,num_cell,time))
+# set the matrix for signal in different cell, electron
+	signal_cell_electron=np.zeros((num_electron,num_cell,time))
+
+# set the matrix for spike parameter in different cell, electron
+	spike_shape_parameter=np.zeros((num_electron,num_cell,3,2))
 
 
 	for j in range(num_cell):
@@ -214,17 +217,20 @@ def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level
 			height1=rand.randint(100,500)
 			height2=rand.randint(100,500)
 			
-
 			shape_parameter=np.array([[mu1,mu2],[sigma1,sigma2],[height1,height2]])
 
+			spike_shape_parameter[i,j]=shape_parameter
+
 			signal=waveform_generator(spike_timeline,shape_parameter,False,spike_len=100)*boolean[i,j]
-			spike_shape_parameter[i,j]=noise(signal,epsilon=(height1+height2)/2*noise_level)
+			signal_cell_electron[i,j]=noise(signal,epsilon=(height1+height2)/2*noise_level)
 			# get the matrix for different electrons
-			matrix_electron=spike_shape_parameter.sum(axis=1)
+			matrix_electron=signal_cell_electron.sum(axis=1)
 
 
 		# add plot 
 	if(plot!=False):
+		
+		# plot for different cells in electrons
 		color1=cm.rainbow(np.linspace(0,1,num_cell))
 
 		f,ax=plt.subplots(num_electron,sharex=True, sharey=True)
@@ -235,30 +241,69 @@ def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level
 
 			for j in range(num_cell):
 				if(boolean[i,j]!=0):
-					signal=np.array(spike_shape_parameter[i,j])
+					signal=np.array(signal_cell_electron[i,j])
 					#signal=signal[0:10000]
 				else:
 					signal=0
 
 				ax[i].plot(signal,color=color1[j])
 				ax[i].set_title('Electron %s can receive signals from %s cells' %(i,number))
-		#plt.savefig('image/SeperateSignalsOfElectron.png')
-		plt.show()
+		plt.savefig('image/SeperateSignalsOfElectron.png')
+		#plt.show()
 
 
-
+		# plot for the compositions of cells signals in electrons
 		f2,ax2=plt.subplots(num_electron,sharex=True, sharey=True)
 		for i in range(num_electron):
 			signal=np.array(matrix_electron[i])
 			#signal=signal[0:10000]
 			ax2[i].plot(signal,color='b')
 			ax2[i].set_title('Signals of Electron %s' %(i))
-		#plt.savefig('image/ComposedSignalsOfElectron.png')
-		plt.show()
+		plt.savefig('image/ComposedSignalsOfElectron.png')
+		#plt.show()
+
+
+		# plot for spike shape in different electrons
+
+		f3,ax3=plt.subplots(1)
+
+		spike_len=100
+		
+		for j in range(num_cell):
+			spike_shape=np.zeros(num_electron*spike_len)
+
+			for i in range(num_electron):
+				parameter=spike_shape_parameter[i,j]
+
+				mu1=parameter[0,0]
+				mu2=parameter[0,1]
+				sigma1=parameter[1,0]
+				sigma2=parameter[1,1]
+				height1=parameter[2,0]
+				height2=parameter[2,1]
+
+				spike_x=np.arange(-spike_len/2,spike_len/2)
+				spike1=height1*np.exp(-np.power(spike_x/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
+				spike2=height2*np.exp(-np.power(spike_x/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
+				spike=spike1-spike2
+
+				spike_shape=np.concatenate((spike_shape,spike),axis=0)
+
+			ax3.plot(spike_shape)
+			ax3.set_title('Original Spikes')
+		plt.savefig('image/OriginalSpikes.png')
 
 
 
-	return matrix_electron, boolean, spike_shape_parameter
+
+
+
+
+
+
+
+
+	return matrix_electron, boolean, signal_cell_electron
 
 
 

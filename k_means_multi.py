@@ -33,15 +33,6 @@ from data_initilization import multi_electrons_generator
 
 # Step1:
 # Generate data (mutiple electrons, aligned) to apply k means
-num_electron=2
-num_cell=2
-time=50000
-noise_level=0.01
-overlap_level=1000
-boolean=False
-plot=True
-
-matrix_electron, boolean, spike_shape_parameter=multi_electrons_generator(num_electron,num_cell,time)
 
 # our signal matrix will be matrix_electron
 
@@ -51,7 +42,8 @@ matrix_electron, boolean, spike_shape_parameter=multi_electrons_generator(num_el
 def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100):
 	
 	# get number of electron
-	num_electron=signal_matrix.shape(0)
+	shape=signal_matrix.shape
+	num_electron=shape[0]
 	
 	# take convolution of the first row of matrix
 	signal1=matrix_electron[0]
@@ -64,12 +56,15 @@ def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100)
 	# get information of spike location
 	local_max=detect_peaks(convolution, mph=threshold, mpd=window_len, show=True)
 
-	# initialize empty matrix for final aligned matrix
-	final_matrix=[]
 
-	# initialize empty matrix for aligned matrix for each electron
+	# initialize empty matrix for final aligned matrix
 	m=len(local_max)
 	n=window_len
+
+	final_matrix=np.zeros((m,n))
+
+	# initialize empty matrix for aligned matrix for each electron
+	
 	detected_spikes=np.zeros((m,n))
 
 
@@ -98,21 +93,42 @@ def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100)
 			distance=max_location-spike_max_location
 			detected_spikes[i]=np.roll(detected_spikes[i],distance)
 
+		print(detected_spikes.shape)
 		# add the aligned to our final matrix
 		final_matrix=np.concatenate((final_matrix,detected_spikes),axis=1)
 
 
+	return final_matrix
 
 
 
+########################################################
+#test data
+num_electron=2
+num_cell=3
+time=30000
+noise_level=0.01
+overlap_level=1000
+boolean=False
+plot=True
+threshold=100
+
+matrix_electron, boolean, spike_shape_parameter=multi_electrons_generator(num_electron,num_cell,time)
 
 
 
+#process data
 
+a=process_spike_multi(matrix_electron,threshold)
 
+num_cluster=3
+interations=20
 
+	# apply k-means
+center_vectors, classified_spikes=k_means_spikeDetection(a,num_cluster,interations)
 
-
+	# plot result
+plot_kMeans_clusters(classified_spikes,center_vectors,num_cluster)
 
 
 
