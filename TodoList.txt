@@ -1,0 +1,28 @@
+########################################################
+Week July 1-July7:
+1. Add evaluation to k-means performance 
+1.1 Change boolean matrix in multi-generator to get a more
+structured data inilization
+1.2 evaluate result of K means of different number of spikes
+
+2. Change k-means distance to apply for multi electrons and
+evaluate
+
+3. start reading papers and do some summary
+
+
+
+
+
+
+# 1. each cell appears only in certain numbers of  electrons
+
+# six electrons six cells, each cell by two electrons
+
+# 2. evaluate result of K means of different number of spikes
+
+# 3. change k-means of deal with it
+# change the distance of 
+
+
+

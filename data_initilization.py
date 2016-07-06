@@ -173,7 +173,7 @@ def noise(signal,epsilon):
 # in a certain electron
 
 
-def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level=0.01,overlap_level=1000,boolean=False,plot=True):
+def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level=0.01,overlap_level=1000,boolean=False,plot=False):
 
 # set the boolean matrix for whether an electron can detect a single cell
 	if(boolean!=False):
@@ -266,11 +266,9 @@ def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level
 		# plot for spike shape in different electrons
 
 		f3,ax3=plt.subplots(1)
-
 		spike_len=100
-		
+		spike_shape=[]
 		for j in range(num_cell):
-			spike_shape=np.zeros(num_electron*spike_len)
 
 			for i in range(num_electron):
 				parameter=spike_shape_parameter[i,j]
@@ -291,16 +289,8 @@ def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level
 
 			ax3.plot(spike_shape)
 			ax3.set_title('Original Spikes')
+		
 		plt.savefig('image/OriginalSpikes.png')
-
-
-
-
-
-
-
-
-
 
 
 	return matrix_electron, boolean, signal_cell_electron
