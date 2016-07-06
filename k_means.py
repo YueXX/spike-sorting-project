@@ -1,6 +1,4 @@
 
-
-
 import numpy as np
 import random as rand
 from matplotlib import pyplot as plt
@@ -87,6 +85,7 @@ def process_spike(signal, window_len, take_window_len,noise_level, window_height
 # K_means_spikeDetection function will perform k-means algorithm on 
 # aligned spikes
 
+
 def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=20):
 	# Initialize spikes with lables
 	m=aligned_spikes.shape[0]#num of points
@@ -99,8 +98,6 @@ def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=20):
 	#return initial_center
 	for num in range(num_cluster):
 		initial_center[num]=aligned_spikes[k[num]]
-	center_vectors_label=np.zeros((num_cluster,n+1))
-
 
 	# Main loop:
 	center_vectors=initial_center
@@ -109,21 +106,18 @@ def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=20):
 		# Determine clusters by computing the Eculidean distance
 		clusters_distance=distance.cdist(aligned_spikes,center_vectors,'euclidean',p=2)
 		label=clusters_distance.argmin(axis=1)
+		
 		classified_spikes=np.c_[aligned_spikes,label]
-				
-		for index in range(0,num_cluster):
-			cluster_vector=classified_spikes[classified_spikes[:,-1]==index]
-			number=cluster_vector.shape[0]
-			#print(index,'has',number)
 
-			# Get new center by averaging	
-			center_vectors_label[index]=1.0/number*np.sum(cluster_vector,axis=0)			
-			#plt.plot(center_vectors_label[index])
-		center_vectors=np.delete(center_vectors_label,-1,1)
-		#plt.show()
+		# assign each vector in aligned_spikes a group		
+		for index in range(0,num_cluster):
+			cluster_vector=aligned_spikes[label==index]
+			number=cluster_vector.shape[0]
+
+			# Get new center by averaging vectors in a certain group
+			center_vectors[index]=1.0/number*np.sum(cluster_vector,axis=0)			
 
 	return center_vectors,classified_spikes
-
 
 
 def plot_kMeans_clusters(classified_spikes,center_vectors,num_cluster):
