@@ -31,14 +31,23 @@ from data_initilization import multi_electrons_generator
 # 4. concate the above result matrix
 # 5. apply k-means to the final matrix
 
-# Step1:
-# Generate data (mutiple electrons, aligned) to apply k means
 
-# our signal matrix will be matrix_electron
+###################################################################################
 
-# step 2: apply convolution on the first row of the signal matrix to get the spike location
+# the function process_spike_multi will detect spikes from mutiple electrons/cells
 
-# step2.1: convolution
+# Input: 
+# signal_matrix is the signal matrix generated from function multi_electrons_generator
+# with dimension num_electron*time
+
+# threshold: is the threshold we set to find the maximum of convulution
+# window_height/window_len is the window parameter we set for convolution
+
+
+# Output: 
+# there are two types of output: 
+# final_matrix is signal output for modified k-means clustering
+# final_matrix_ecud is for k-means clustering in Euclidean distance
 def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100):
 	
 	# get number of electron
@@ -46,7 +55,7 @@ def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100)
 	num_electron=shape[0]
 	
 	# take convolution of the first row of matrix
-	signal1=matrix_electron[0]
+	signal1=signal_matrix[0]
 	signal_abs=map(abs,signal1)
 	
 	weights = np.repeat(window_height, window_len)
@@ -54,27 +63,29 @@ def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100)
 	convolution=convolution/window_len
 
 	# get information of spike location
-	local_max=detect_peaks(convolution, mph=threshold, mpd=window_len, show=True)
+	local_max=detect_peaks(convolution, mph=threshold, mpd=window_len, show=False)
 
 
-	# initialize empty matrix for final aligned matrix
+	# Initialization
+	
 	m=len(local_max)
 	n=window_len
+	
+	# initialize empty 3D array for final aligned matrix
 
-	final_matrix=np.zeros((m,n))
-
+	final_matrix=np.zeros((num_electron,m,n))
+	final_matrix_ecud=np.zeros((m,1))
+	
 	# initialize empty matrix for aligned matrix for each electron
 	
 	detected_spikes=np.zeros((m,n))
-
-
 	# loop over each row of matrix_electron --- every electron
 	for num in range(num_electron):
 		
 		# initialize index
 		index=0
 		
-		signal=matrix_electron[num]
+		signal=signal_matrix[num]
 
 		# locate spike in electron signal
 		for item in local_max:
@@ -84,6 +95,7 @@ def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100)
 
 		# random choose one row 
 		k=rand.randint(0,m-1)
+
 		# get the maximum location of this row
 		max_location=detected_spikes[k].argmax(axis=0)
 
@@ -93,44 +105,78 @@ def process_spike_multi(signal_matrix,threshold, window_height=2,window_len=100)
 			distance=max_location-spike_max_location
 			detected_spikes[i]=np.roll(detected_spikes[i],distance)
 
-		print(detected_spikes.shape)
 		# add the aligned to our final matrix
-		final_matrix=np.concatenate((final_matrix,detected_spikes),axis=1)
+		final_matrix[num,:,:]=detected_spikes
+		final_matrix_ecud=np.concatenate((final_matrix_ecud,detected_spikes),axis=1)
+	
+		#get rid of the first zeros in the matrix
+	n=final_matrix_ecud.shape[1]
+	final_matrix_ecud=final_matrix_ecud[:,1:n]
+
+	return final_matrix,final_matrix_ecud
 
 
-	return final_matrix
+#####################################################################################
+# k_means_sumEuclidean is the modified k-means clustering for spike detection
+
+
+def k_means_sumEuclidean(aligned_spikes,num_cluster,iterations=20,spike_len=100):
+
+
+	#Initialization 
+	aligned_spikes=np.array(aligned_spikes)
+
+	# here aligned_spikes is 3-D array. Each block(there are num_electron blocks)
+	# is a num_spike*spike_sim matrix
+	num_electron=aligned_spikes.shape[0]
+	num_spike=aligned_spikes.shape[1]
+	spike_dim=aligned_spikes.shape[2]
+
+	# Initialize center of k-means clustering
+	k=np.random.permutation(num_spike)
+	initial_center=np.zeros((num_electron,num_cluster,spike_dim))
+
+	# return randomly initialized centers
+	for num in range(num_cluster):
+		initial_center[:,num,:]=aligned_spikes[:,k[num],:]
+	
+	# Main loop:
+	center_vectors=initial_center
+	for ite in range(iterations):
+		
+		# Determine clusters by computing the modified distance(sum of L2 distance of each electron)
+		
+		# initialize distance
+		electron_distance=np.zeros((num_spike,num_cluster))
+		
+		for i in range(num_electron):
+			spike=aligned_spikes[i,:,:]
+			center=center_vectors[i,:,:]
+				
+			distance_singleEletron=distance.cdist(spike,center,'euclidean')
+			
+			# Sum over distance in each electron
+			electron_distance=electron_distance+distance_singleEletron
+
+		label=electron_distance.argmin(axis=1)
+
+
+		for index in range(0,num_cluster):
+			cluster_vector=aligned_spikes[:,label==index,:]
+			number=cluster_vector.shape[1]
+			
+			# Get new center by averaging	
+			center_vectors[:,index,:]=1.0/number*np.sum(cluster_vector,axis=1)			
+
+
+	center_vector=center_vectors.reshape(1,num_electron,num_cluster,spike_dim).swapaxes(1,2).reshape(num_cluster,-1)
+
+	return center_vector
 
 
 
-########################################################
-#test data
-num_electron=2
-num_cell=2
-time=30000
-noise_level=0.01
-overlap_level=1000
-boolean=False
-plot=True
-threshold=100
-
-matrix_electron, boolean, spike_shape_parameter=multi_electrons_generator(num_electron,num_cell,time)
 
 
-
-#process data
-
-a=process_spike_multi(matrix_electron,threshold)
-
-num_cluster=2
-interations=20
-
-	# apply k-means
-center_vectors, classified_spikes=k_means_spikeDetection(a,num_cluster,interations)
-
-	# plot result
-plot_kMeans_clusters(classified_spikes,center_vectors,num_cluster)
-
-print('Ahhhh')
 
 
 
