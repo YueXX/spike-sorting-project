@@ -101,7 +101,7 @@ def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=20):
 
 	# Main loop:
 	center_vectors=initial_center
-	for ite in range(1,iterations):
+	for ite in range(iterations):
 		
 		# Determine clusters by computing the Eculidean distance
 		clusters_distance=distance.cdist(aligned_spikes,center_vectors,'euclidean',p=2)
