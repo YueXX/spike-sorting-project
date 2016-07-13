@@ -117,7 +117,7 @@ def k_means_spikeDetection(aligned_spikes,num_cluster,iterations=20):
 			# Get new center by averaging vectors in a certain group
 			center_vectors[index]=1.0/number*np.sum(cluster_vector,axis=0)			
 
-	return center_vectors,classified_spikes
+	return center_vectors,label
 
 
 def plot_kMeans_clusters(classified_spikes,center_vectors,num_cluster):

@@ -13,44 +13,72 @@ from scipy.spatial import distance
 import sys
 sys.path.insert(1, r'./../functions')  # add to pythonpath
 
-from k_means import process_spike
-from k_means import k_means_spikeDetection
-from k_means import plot_kMeans_clusters
+from k_means_Eculidean2Norm import process_spike
+from k_means_Eculidean2Norm import k_means_spikeDetection
+from k_means_Eculidean2Norm import plot_kMeans_clusters
 
 from data_initilization import spike_timeline_generator
 from data_initilization import waveform_generator
 from data_initilization import noise
 from data_initilization import multi_electrons_generator
-from k_means_multi import process_spike_multi
-from k_means_multi import k_means_sumEuclidean
-
-
+from k_means_sumEculideanNorm import process_spike_multi
+from k_means_sumEculideanNorm import k_means_sumEuclidean
+from k_means_sumEculideanNorm import classify_label
+from k_means_sumEculideanNorm import prediction_rate
 # Main file
 # test functions 
 
 #test data
 def main():
 
-	num_electron=2
-	num_cell=2
-	time=30000
+	num_electron=3
+	num_cell=3
+	time=40000
+	delay=False
 	noise_level=0.01
-	overlap_level=500
+	overlap_level=400
 	boolean=False
-	plot=True
-	threshold=100
+	plot=False
+	threshold=80
 
-	matrix_electron, boolean, spike_shape_parameter=multi_electrons_generator(num_electron,num_cell,time)
-		
-	a1,a2=process_spike_multi(matrix_electron,threshold)
+	matrix_electron, boolean,signal_cell_electron,spike_timeline_parameter,spike_shape_parameter=multi_electrons_generator(num_electron,num_cell,time,delay,noise_level,overlap_level,boolean,plot,spike_len=100)
 
-	x=k_means_sumEuclidean(a1,2,50)
 
-	x2,y2=k_means_spikeDetection(a2,2,50)
+	#print(spike_timeline_parameter[0])
 
-	plt.plot(x[1])
-	plt.plot(x2[1])
-	plt.show()
+	#print(spike_shape_parameter)
+
+
+	final_matrix,final_matrix_ecud,label=process_spike_multi(matrix_electron,spike_timeline_parameter,threshold)
+	
+	classify_label(final_matrix,label,"real")
+	num_cluster=num_cell
+
+
+	center_vectors,final_label=k_means_sumEuclidean(final_matrix,num_cluster)
+
+	#print('Label sumEculidean')
+	classify_label(final_matrix,final_label,"sumEculidean")
+
+	center_vectors2,final_label2=k_means_spikeDetection(final_matrix_ecud,num_cluster)
+
+	#print('Label Eculidean')
+	
+	classify_label(final_matrix,final_label2,"Eculidean")
+
+	print('error rate sumEculidean')
+	
+	prediction_rate(label,final_label)
+
+	print('error rate Eculidean')
+	prediction_rate(label,final_label2)
+	#plt.plot(x[0])
+	
+	#plt.plot(x2[0])
+
+
+
+	#plt.show()
 
 	# x = np.arange(16).reshape((4,2,2))
 	# x=x.reshape(1,4,2,2).swapaxes(1,2).reshape(2,-1)

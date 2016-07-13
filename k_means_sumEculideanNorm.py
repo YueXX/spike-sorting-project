@@ -8,7 +8,8 @@ from scipy import signal
 from sklearn import cluster
 from peak_detect import detect_peaks
 from scipy.spatial import distance
-
+from matplotlib.pyplot import cm 
+from collections import Counter
 
 import sys
 sys.path.insert(1, r'./../functions')  # add to pythonpath
@@ -76,7 +77,6 @@ def process_spike_multi(signal_matrix,timeline_matrix,threshold, window_height=2
 	
 
 
-
 	# initialize label
 	label=[]
 	
@@ -96,10 +96,6 @@ def process_spike_multi(signal_matrix,timeline_matrix,threshold, window_height=2
 
 	label_array=np.zeros(num_cell)
 	
-	print('local_max',local_max-spike_len/2)
-	print('num_cell',num_cell)
-	print(timeline_matrix)
-
 
 
 	for item in local_max:
@@ -110,10 +106,16 @@ def process_spike_multi(signal_matrix,timeline_matrix,threshold, window_height=2
 
 			distance=abs(distance)
 			label_array[index]=np.amin(distance)
-		#print('label_array',label_array)
 
-		#print('label_array',label_array)
-		label.append(np.argmin(label_array))
+
+		sorted_array=sorted(label_array)
+		if(sorted_array[1]<spike_len):
+			new_label=num_cell
+			label.append(new_label)
+		else:
+			label.append(np.argmin(label_array))
+
+
 
 
 
@@ -169,15 +171,26 @@ def k_means_sumEuclidean(aligned_spikes,num_cluster,iterations=20,spike_len=100)
 	# here aligned_spikes is 3-D array. Each block(there are num_electron blocks)
 	# is a num_spike*spike_dim matrix
 	
-	num_spike=aligned_spikes.shape[0]
-	spike_dim=aligned_spikes.shape[1]
+	# num_spike=aligned_spikes.shape[0]
+	# spike_dim=aligned_spikes.shape[1]
 	
-	num_electron=int(spike_dim/spike_len)
-	spike_dim=spike_dim/num_electron
+	# num_electron=int(spike_dim/spike_len)
+	# spike_dim=spike_dim/num_electron
 
-	#print(aligned_spikes.shape)
-	aligned_spikes=aligned_spikes.reshape(num_spike,num_electron,spike_dim)
+	# #print(aligned_spikes.shape)
+	# aligned_spikes=aligned_spikes.reshape(num_spike,num_electron,spike_dim)
 
+
+	#Initialization 
+	aligned_spikes=np.array(aligned_spikes)
+
+	# here aligned_spikes is 3-D array. Each block(there are num_electron blocks)
+	# is a num_spike*spike_sim matrix
+	num_electron=aligned_spikes.shape[0]
+	num_spike=aligned_spikes.shape[1]
+	spike_dim=aligned_spikes.shape[2]
+
+	
 
 	# Initialize center of k-means clustering
 	k=np.random.permutation(num_spike)
@@ -207,7 +220,7 @@ def k_means_sumEuclidean(aligned_spikes,num_cluster,iterations=20,spike_len=100)
 		label=electron_distance.argmin(axis=1)
 
 
-		for index in range(0,num_cluster):
+		for index in range(num_cluster):
 			cluster_vector=aligned_spikes[:,label==index,:]
 			number=cluster_vector.shape[1]
 			
@@ -217,13 +230,71 @@ def k_means_sumEuclidean(aligned_spikes,num_cluster,iterations=20,spike_len=100)
 
 	center_vector=center_vectors.reshape(1,num_electron,num_cluster,spike_dim).swapaxes(1,2).reshape(num_cluster,-1)
 
-	return center_vector
+	return center_vector,label
+
+
+
+
+def classify_label(signal_matrix,label,name):
+
+
+	num_electron=signal_matrix.shape[0]
+	label=np.array(label)
+
+	max_label=np.max(label)
+	color=cm.rainbow(np.linspace(0,1,max_label+1))
+
+	f,ax=plt.subplots(max_label+1,num_electron,sharex=True, sharey=True)
+	
+	for index in range(max_label+1):
+		cluster=signal_matrix[:,label == index,:]
+
+		for index2 in range(num_electron):
+
+			for item in range(cluster.shape[1]):
+
+				ax[index,index2].plot(cluster[index2,item],color=color[index])
+				ax[index,index2].set_title('%s' %[index+1,index2+1])
+
+	plt.savefig('image/%s.png'%name)
+
+	#plt.show()		
+		
+
+def prediction_rate(real_label,predict_label):
+
+	real_label=np.array(real_label)
+	
+	
+	max_val=np.max(real_label)
+
+
+	for index in range(max_val):
+
+		cluster_label=predict_label[predict_label==index]
+		cluster_label2=real_label[predict_label==index]
+		
+		compare_label=cluster_label-cluster_label2
+		
+		c=Counter(compare_label)
+		value,count=c.most_common()[0]
+		num=cluster_label.shape[0]
+		
+		prediction_rate=1.0*count/num
+
+		print('the prediction rate of electron %s is'%index, prediction_rate)
 
 
 
 
 
 
+
+
+
+	
+
+	
 
 
 
