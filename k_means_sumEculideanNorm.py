@@ -200,6 +200,7 @@ def k_means_sumEuclidean(aligned_spikes,num_cluster,iterations=20,spike_len=100)
 	for num in range(num_cluster):
 		initial_center[:,num,:]=aligned_spikes[:,k[num],:]
 	
+
 	# Main loop:
 	center_vectors=initial_center
 	for ite in range(iterations):
@@ -228,9 +229,9 @@ def k_means_sumEuclidean(aligned_spikes,num_cluster,iterations=20,spike_len=100)
 			center_vectors[:,index,:]=1.0/number*np.sum(cluster_vector,axis=1)			
 
 
-	center_vector=center_vectors.reshape(1,num_electron,num_cluster,spike_dim).swapaxes(1,2).reshape(num_cluster,-1)
+	#center_vector=center_vectors.reshape(1,num_electron,num_cluster,spike_dim).swapaxes(1,2).reshape(num_cluster,-1)
 
-	return center_vector,label
+	return center_vectors,label
 
 
 
@@ -256,9 +257,9 @@ def classify_label(signal_matrix,label,name):
 				ax[index,index2].plot(cluster[index2,item],color=color[index])
 				ax[index,index2].set_title('%s' %[index+1,index2+1])
 
-	plt.savefig('image/%s.png'%name)
+	#plt.savefig('image/%s.png'%name)
 
-	#plt.show()		
+	plt.show()		
 		
 
 def prediction_rate(real_label,predict_label):

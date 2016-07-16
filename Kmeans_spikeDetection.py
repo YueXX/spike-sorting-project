@@ -78,8 +78,6 @@ def k_means_MinEculidean_distance(X,center_vectors):
 
 
 
-
-
 def k_means_findCenter_block(X,num_cluster,label):
 	label=np.array(label)
 	num_electron=X.shape[0]

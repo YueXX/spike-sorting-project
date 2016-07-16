@@ -10,19 +10,52 @@ evaluate
 
 3. start reading papers and do some summary
 
+#########################################################
+Week July 8- Jyly 14:
+
+1. Coding:
+
+1.1 Write evaluation of k-means performance
+1.2 Test new k-means algorithm, by adding more overlapping spikes and
+compare old k-means/new k-means
+
+1.3 visdualize results
+1.4 improve code
+
+
+2. Reading paper:
+2.1 Read the 3 papers rec by professor
+2.2 Write summary/questions 
+
+
+3. Written exam: 
+3.1 Read complex chap 2,3
+3.2 Do the practice problems
+
+########################################################
+Week July15 - July 22
+1. Coding
+Improve code
+Write new distance for k means
+
+2. Reading paper: 
+2.1 Read the 3 papers rec by professor
+2.2 Write summary/questions 
+
+3. Written exam !!!: 
+3.1 Read complex chap 2,3
+3.2 Do the practice problems
 
 
 
 
 
-# 1. each cell appears only in certain numbers of  electrons
 
-# six electrons six cells, each cell by two electrons
 
-# 2. evaluate result of K means of different number of spikes
 
-# 3. change k-means of deal with it
-# change the distance of 
+
+
+
 
 
 

@@ -25,6 +25,8 @@ from k_means_sumEculideanNorm import process_spike_multi
 from k_means_sumEculideanNorm import k_means_sumEuclidean
 from k_means_sumEculideanNorm import classify_label
 from k_means_sumEculideanNorm import prediction_rate
+from SumEculideanKmeans_spikeDetection import Kmeans_spikeDetection
+
 # Main file
 # test functions 
 
@@ -36,7 +38,7 @@ def main():
 	time=40000
 	delay=False
 	noise_level=0.01
-	overlap_level=400
+	overlap_level=1000
 	boolean=False
 	plot=False
 	threshold=80
@@ -54,25 +56,33 @@ def main():
 	classify_label(final_matrix,label,"real")
 	num_cluster=num_cell
 
+	#center_vectors,final_label=k_means_sumEuclidean(final_matrix,num_cluster)
 
-	center_vectors,final_label=k_means_sumEuclidean(final_matrix,num_cluster)
-
-	#print('Label sumEculidean')
-	classify_label(final_matrix,final_label,"sumEculidean")
-
-	center_vectors2,final_label2=k_means_spikeDetection(final_matrix_ecud,num_cluster)
-
-	#print('Label Eculidean')
+	kMeans=Kmeans_spikeDetection(num_cluster=3,iterations=10,distance_mode='sum')
 	
-	classify_label(final_matrix,final_label2,"Eculidean")
-
-	print('error rate sumEculidean')
+	#kMeans=Kmeans_spikeDetection(num_cluster=3,iterations=10,distance_mode='SumEculidean')
 	
-	prediction_rate(label,final_label)
+	kMeans.fit(final_matrix)
+	kMeans.plotCluster(final_matrix)
 
-	print('error rate Eculidean')
-	prediction_rate(label,final_label2)
-	#plt.plot(x[0])
+
+
+	# #print('Label sumEculidean')
+	# classify_label(final_matrix,final_label,"sumEculidean")
+
+	# center_vectors2,final_label2=k_means_spikeDetection(final_matrix_ecud,num_cluster)
+
+	# #print('Label Eculidean')
+	
+	# classify_label(final_matrix,final_label2,"Eculidean")
+
+	# print('error rate sumEculidean')
+	
+	# prediction_rate(label,final_label)
+
+	# print('error rate Eculidean')
+	# prediction_rate(label,final_label2)
+	# #plt.plot(x[0])
 	
 	#plt.plot(x2[0])
 
