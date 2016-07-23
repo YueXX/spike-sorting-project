@@ -315,7 +315,7 @@ def multi_electrons_generator(num_electron,num_cell,time,delay=False,noise_level
 # spike=waveform_generator(time1,shape_parameter,False)
 
 
-#a,b,c=multi_electrons_generator(5,5,10000,0.01,1000,True,True)
+# a,b,c=multi_electrons_generator(1,3,2000,0.001,1000,False,False)
 
 
 

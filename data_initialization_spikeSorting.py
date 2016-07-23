@@ -95,7 +95,6 @@ def multi_electrons_shape_generator(num_cell,num_electron):
 
 
 
-
 def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter,time,delay,overlap_level,noise_level,boolean,spike_len):
 
 	# initialize cell with different delay in electrons
@@ -144,8 +143,8 @@ def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter
 		# add each the signal of every cell in one electron 
 		signal=signal_matrix.sum(axis=0)
 	
-	return signal,timeline_list,delay_matrix
 
+	return signal,timeline_list,signal_matrix,delay_matrix
 
 
 
@@ -178,7 +177,6 @@ def process_aligned_signal(signal,timeline_list,threshold,spike_len,window_heigh
 	# initialize label
 	label=[]
 	
-
 	# initialize empty 3D array for final aligned matrix
 	final_matrix=np.zeros((num_electron,m,n))
 	final_matrix_ecud=np.zeros((m,1))
@@ -264,13 +262,14 @@ class data_initialization_spikeSorting:
 		return self
 
 	def signal_generator(self,overlap_level,noise_level,boolean):
-		self.signal,self.timeline_list,self.delay_matrix= \
+		
+		self.signal,self.timeline_list,self.signal_matrix,self.delay_matrix= \
 		multi_electrons_signal_generator(self.num_cell,self.num_electron,self.spike_shape_parameter,self.time,self.delay,overlap_level,noise_level,boolean,self.spike_len)
 
 		return self
 
 
-	def align_signal():
+	def align_signal(self):
 		#To do 
 
 		return self
@@ -278,7 +277,7 @@ class data_initialization_spikeSorting:
 
 	def process_aligned_signal(self,threshold=80,window_height=2):
 
-		self.processed_matrix,self.processed_matrix_Ecu,self.label=process_aligned_signal(self.signal,self.timeline_list,threshold,self.spike_len,window_height=2,)
+		self.aligned_matrix_3D,self.aligned_matrix_2D,self.label=process_aligned_signal(self.signal,self.timeline_list,threshold,self.spike_len,window_height=2,)
 		
 		return self
 
