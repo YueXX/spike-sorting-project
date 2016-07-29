@@ -2,24 +2,49 @@
 import numpy as np
 from Kmeans_spikeDetection import Kmeans_spikeDetection
 from data_initialization_spikeSorting import data_initialization_spikeSorting
+from sklearn import cluster, datasets
+from matplotlib import pyplot as plt
 
 def main():
 
-	data_1=data_initialization_spikeSorting(num_cell=2,num_electron=3,time=30000,delay=False)
+# initialize data
+	num_cell=4
+	num_electron=4
+	overlap_level=300
+	noise_level=5
 
-	data_1.data_init()
-	boole=np.ones((2,3))
+	data=data_initialization_spikeSorting(num_cell=num_cell,num_electron=num_electron,time=30000,delay=False)
+	data.data_init()
 	
-	data_1.signal_generator(overlap_level=200,noise_level=5,boolean=boole)
+	boolean=np.array([[1,1,1,1],[0,1,1,1],[0,0,1,1],[0,0,0,1]])
+
+	boolean=np.ones((num_cell,num_electron))
+
+
+	data.signal_generator(overlap_level=overlap_level,noise_level=noise_level,boolean=boolean)
+	data.plot()
+	data.get_aligned_signal()
+
+##############################################################
+# Apply k-means
+
+	kMeans=Kmeans_spikeDetection(num_cluster=num_cell,iterations=50)
+
+	kMeans.fit(data.aligned_matrix_3D,distance_mode='SumEculidean')
+	kMeans.plotCluster(data.aligned_matrix_3D,kMeans.label)
+
+	kMeans.fit(data.aligned_matrix_3D,distance_mode='MinEculidean')
+	kMeans.plotCluster(data.aligned_matrix_3D,kMeans.label)
+
+	kMeans.fit(data.aligned_matrix_2D,distance_mode='Eculidean')
+	kMeans.plotCluster(data.aligned_matrix_3D,kMeans.label)
+
 	
-	data_1.process_aligned_signal()
-
-
-	kMeans=Kmeans_spikeDetection(num_cluster=3,iterations=20,distance_mode='SumEculidean')
+	k_means = cluster.KMeans(n_clusters=num_cell)
+	k_means.fit(data.aligned_matrix_2D)
+	kMeans.distance_mode='sklearn'
+	kMeans.plotCluster(data.aligned_matrix_3D,k_means.labels_)
 	
-	kMeans.fit(data_1.aligned_matrix_3D)
-	kMeans.plotCluster(data_1.aligned_matrix_3D)
-
 
 
 if __name__ == "__main__":
