@@ -6,6 +6,66 @@ from matplotlib import pyplot as plt
 
 
 
+def init_centroids(X,num_cluster):
+
+	num_point=X.shape[0]#num of points
+	dim_point=X.shape[1]#dim of the points
+	
+	# Take initialize centers
+	index_permutation=np.random.permutation(num_point)
+	initial_center=np.zeros((num_cluster,dim_point))
+
+	#return initial_center
+	for index in range(num_cluster):
+		initial_center[index]=X[index_permutation[index]]
+
+
+	return initial_center
+
+
+def k_means_distance(X,center_vectors):
+	
+	clusters_distance=distance.cdist(X,center_vectors,'euclidean',p=2)
+	distance_label=clusters_distance.argmin(axis=1)
+
+	return distance_label
+
+
+def k_means_findCenter(X,num_cluster,distance_label):
+	
+	center_vectors=np.zeros((num_cluster,X.shape[1]))
+
+	for index in range(0,num_cluster):
+		cluster_vector=X[distance_label==index]
+		
+		number=cluster_vector.shape[0]
+		# Get new center by averaging vectors in a certain group
+		center_vectors[index]=1.0/number*np.sum(cluster_vector,axis=0)			
+
+	return center_vectors
+
+
+
+def k_means_spikeDetection(X,num_cluster,iterations):
+	
+	# Initialize spikes with lables
+	initial_center=init_centroids(X,num_cluster)
+
+	# Main algorithm:
+	center_vectors=initial_center
+	
+	for ite in range(iterations):
+		
+		# Determine clusters by computing the Eculidean distance and label
+		distance_label=k_means_distance(X,center_vectors)
+		center_vectors=k_means_findCenter(X,num_cluster,distance_label)
+
+		# Get new center by averaging each cluster
+
+	return center_vectors,distance_label
+
+
+
 def init_centroids_electronBlock(X,num_cluster):
 
 	X=np.array(X)
@@ -122,7 +182,7 @@ def k_means_MinEculidean_spikeDetection(X,num_cluster,iterations):
 
 
 
-def classify_label(signal_matrix,label):
+def classify_label(signal_matrix,label,name):
 
 	num_electron=signal_matrix.shape[0]
 	label=np.array(label)
@@ -140,33 +200,39 @@ def classify_label(signal_matrix,label):
 				ax[index,index2].plot(cluster[index2,item],color=color[index])
 				ax[index,index2].set_title('%s' %[index+1,index2+1])
 
-	#plt.savefig('image/%s.png'%name)
+	plt.savefig('image/%s.png'%name)
 
-	plt.show()		
+	#plt.show()	
+
 
 
 
 class Kmeans_spikeDetection:
 
-	def __init__(self,num_cluster,iterations,distance_mode):
+	def __init__(self,num_cluster,iterations):
 
 		self.num_cluster=num_cluster
 		self.iterations=iterations
+
+
+	def fit(self,X,distance_mode):
 		self.distance_mode=distance_mode
-
-
-	def fit(self,X):
-		if(self.distance_mode=='SumEculidean'):
+		if(distance_mode=='SumEculidean'):
 			self.cluster_centers,self.label=k_means_SumEculidean_spikeDetection(X,self.num_cluster,self.iterations)
-			return self
+			
 
-		else:
+		elif(distance_mode=='MinEculidean'):
 			self.cluster_centers,self.label=k_means_MinEculidean_spikeDetection(X,self.num_cluster,self.iterations)
-			return self
+			
+		else:
+			self.cluster_centers,self.label=k_means_spikeDetection(X,self.num_cluster,self.iterations)
 
-	def plotCluster(self,X):
+		return self
 
-		classify_label(X,self.label)
+
+	def plotCluster(self,X,label):
+
+		classify_label(X,label,self.distance_mode)
 
 		return self
 
