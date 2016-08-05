@@ -36,9 +36,7 @@ compare old k-means/new k-means
 Week July15 - July 22
 1. Coding
 Improve code
-Write new distance for k means
 
-plot the image
 
 2. Reading paper: 
 2.1 Read the 3 papers rec by professor
@@ -55,13 +53,32 @@ Week July 23-July 30
 
 1. Coding
 
-2. Read paper/summarize
+Don't just take the first row to get convolution
+More loop for k-means initialization
+add label for adjoined spikes matrix
+perform different k-means and compare
+plot the image
 
+2. Read paper/summarize
 
 3. Written exam !!!: 
 3.1 Read complex chap 5,6,7
 3.2 Do the practice problems
 
+Meeting qestions:
+1. how did the paper deal with the convolution problem
+2. when align spikes,take the first row of convolution or not?
+3. how to label data? label original data or convolued data?
+
+#############################################################
+Week Aug5-Aug12
+1. Coding
+not to use convolution in data init
+label/visdualize
+
+change sklearn kmeans to our distance
+
+read two papers
 
 
 

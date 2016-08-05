@@ -4,7 +4,8 @@ import random as rand
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import cm 
 from peak_detect import detect_peaks
-
+import sys
+sys.dont_write_bytecode = True
 
 def spike_timeline_generator(time,interval_parameter,spike_len):
 # Initilization
@@ -105,7 +106,7 @@ def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter
 	
 	# initialize list to store timeline for each cell
 	timeline_list=[]
-
+	num_spike=0
 	for i in range(num_cell):
 
 		# Generate different timeline for different cell
@@ -114,6 +115,7 @@ def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter
 		
 		# store timeline to list
 		timeline_list.append(cell_timeline)
+		num_spike=num_spike+len(cell_timeline)-1
 		
 		# generate signal for each cell of each electron
 		
@@ -144,12 +146,12 @@ def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter
 		signal=signal_matrix.sum(axis=0)
 	
 
-	return signal,timeline_list,signal_matrix,delay_matrix
+	return signal,timeline_list,signal_matrix,delay_matrix,num_spike
 
 
-def plot_data(num_cell,num_electron,signal_matrix,signal,spike_shape_parameter,boolean,spike_len):
+def plot_data(num_cell,num_electron,signal_matrix,signal,spike_shape_parameter,boolean,spike_len,plot_size):
 
-
+	
 	color1=cm.rainbow(np.linspace(0,1,num_cell))
 
 	num_eachElectron=boolean.sum(axis=0)
@@ -162,6 +164,7 @@ def plot_data(num_cell,num_electron,signal_matrix,signal,spike_shape_parameter,b
 		for j in range(num_cell):
 			if(boolean[j,i]!=0):
 				signal_block=np.array(signal_matrix[j,i])
+				signal_block=signal_block[0:plot_size]
 					#signal=signal[0:10000]
 			else:
 				signal_block=0
@@ -176,6 +179,7 @@ def plot_data(num_cell,num_electron,signal_matrix,signal,spike_shape_parameter,b
 	f2,ax2=plt.subplots(num_electron,sharex=True, sharey=True)
 	for i in range(num_electron):
 		electron_signal=signal[i]
+		electron_signal=electron_signal[0:plot_size]
 		ax2[i].plot(electron_signal,color='b')
 		ax2[i].set_title('Signals of Electron %s' %(i))
 		
@@ -213,10 +217,46 @@ def plot_data(num_cell,num_electron,signal_matrix,signal,spike_shape_parameter,b
 
 
 
+def process_aligned_signal2(signal,timeline_list,num_spike,spike_len):
+
+	# initialization
+	num_electron=signal.shape[0]
+	num_cell=len(timeline_list)
+	aligned_spikes=np.zeros((num_spike,spike_len*num_electron))
+	label=[]
+	color=cm.rainbow(np.linspace(0,1,num_cell))
+
+	ite=0
+
+	for index in range(num_cell):
+		spike_loc=timeline_list[index]
+		spike_loc=spike_loc[0:-2]
+		for location in spike_loc:
+			aligned_spikes[ite]=signal[:,location:location+spike_len].flatten()
+			ite=ite+1
+			label.append(index)
+
+	# choose one row as rolling benchmark
+	k=rand.randint(0,num_spike-1)
+	max_location=aligned_spikes[k].argmax(axis=0)
+
+	print(label)
+	# roll other rows according to this information
+	for num in range(num_spike):
+		spike_max_location=aligned_spikes[num].argmax(axis=0)
+		distance=max_location-spike_max_location
+		aligned_spikes[num]=np.roll(aligned_spikes[num],distance)
+		plt.plot(aligned_spikes[num])
+		plt.show()
+	
+	return aligned_spikes,label
 
 
 
-def process_aligned_signal(signal,timeline_list,threshold,spike_len,window_height):
+
+
+
+def process_aligned_signal(signal,timeline_list,num_spike,threshold,spike_len,window_height):
 	
 
 	# get number of electron
@@ -229,23 +269,25 @@ def process_aligned_signal(signal,timeline_list,threshold,spike_len,window_heigh
 
 	# take convolution of the first row of matrix or not?...
 
-	i=0
-	spike1=signal[i]
-	signal_abs=map(abs,spike1)
+	# i=0
+	# spike1=signal[i]
+	# signal_abs=map(abs,spike1)
 	
 
-	weights = np.repeat(window_height, spike_len)
-	convolution=np.convolve(weights,signal_abs,'same')
-	convolution=convolution/spike_len
+	# weights = np.repeat(window_height, spike_len)
+	# convolution=np.convolve(weights,signal_abs,'same')
+	# convolution=convolution/spike_len
 
 	# get information of spike location
-	spike_loc=detect_peaks(convolution, mph=threshold, mpd=spike_len, show=False)
+	#spike_loc=detect_peaks(convolution, mph=threshold, mpd=spike_len, show=False)
 
 
 	# Initialization
-	m=len(spike_loc)
+	#m=len(spike_loc)
+	m=num_spike
 	n=spike_len
 	
+
 	# initialize empty 3D array for final aligned matrix
 	final_matrix=np.zeros((num_electron,m,n))
 	final_matrix_ecud=np.zeros((m,1))
@@ -343,7 +385,7 @@ class data_initialization_spikeSorting:
 
 	def signal_generator(self,overlap_level,noise_level,boolean):
 		
-		self.signal,self.timeline_list,self.signal_matrix,self.delay_matrix= \
+		self.signal,self.timeline_list,self.signal_matrix,self.delay_matrix,self.num_spike= \
 		multi_electrons_signal_generator(self.num_cell,self.num_electron,self.spike_shape_parameter,self.time,self.delay,overlap_level,noise_level,boolean,self.spike_len)
 
 		self.bool=boolean
@@ -353,19 +395,25 @@ class data_initialization_spikeSorting:
 
 	def align_signal(self):
 		#To do 
+		return self
+
+
+
+
+	def get_aligned_signal(self):
+
+		self.alinged_spikes,self.label=process_aligned_signal2(self.signal,self.timeline_list,self.num_spike,self.spike_len)
 
 		return self
 
 
-	def get_aligned_signal(self,threshold=80,window_height=2):
-
-		self.aligned_matrix_3D,self.aligned_matrix_2D,self.spike_loc=process_aligned_signal(self.signal,self.timeline_list,threshold,self.spike_len,window_height)
-		
-		return self
+	# def get_aligned_signal(self,threshold=80,window_height=2):
+	# 	self.aligned_matrix_3D,self.aligned_matrix_2D,self.spike_loc=process_aligned_signal(self.signal,self.timeline_list,threshold,self.spike_len,window_height)
+	# 	return self
 
 
 	def plot(self):
-		plot_data(self.num_cell,self.num_electron,self.signal_matrix,self.signal,self.spike_shape_parameter,self.bool,self.spike_len)
+		plot_data(self.num_cell,self.num_electron,self.signal_matrix,self.signal,self.spike_shape_parameter,self.bool,self.spike_len,plot_size=1500)
 
 
 

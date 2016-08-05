@@ -3,7 +3,8 @@ import random as rand
 from scipy.spatial import distance
 from matplotlib.pyplot import cm 
 from matplotlib import pyplot as plt
-
+import sys
+sys.dont_write_bytecode = True
 
 
 def init_centroids(X,num_cluster):
