@@ -7,16 +7,18 @@ from peak_detect import detect_peaks
 import sys
 sys.dont_write_bytecode = True
 
+
 def spike_timeline_generator(time,interval_parameter,spike_len):
 # Initilization
+	rand.seed()
 	var=0
 	timeline=[]
 	index=0
 # Main loop to generate the time axis
 	while var < time-spike_len:
-		interval=rand.expovariate(1.0/interval_parameter)
-		interval=int(interval)
-
+		interval=np.random.normal(interval_parameter,interval_parameter/4)
+		
+		interval=int(abs(interval))
 		var=var+interval+spike_len	
 		timeline.append(var)
 		
@@ -85,8 +87,8 @@ def multi_electrons_shape_generator(num_cell,num_electron):
 			mu2=loc[1]*rand.randint(10,30)
 			sigma1=rand.randint(1,20)
 			sigma2=rand.randint(1,20)
-			height1=rand.randint(300,500)
-			height2=rand.randint(300,500)
+			height1=rand.randint(300,800)
+			height2=rand.randint(300,800)
 			
 			shape_parameter=np.array([[mu1,mu2],[sigma1,sigma2],[height1,height2]])
 
@@ -97,7 +99,7 @@ def multi_electrons_shape_generator(num_cell,num_electron):
 
 
 def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter,time,delay,overlap_level,noise_level,boolean,spike_len):
-
+	rand.seed()
 	# initialize cell with different delay in electrons
 	delay_matrix=np.zeros((num_cell,num_electron))
 	
@@ -110,7 +112,8 @@ def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter
 	for i in range(num_cell):
 
 		# Generate different timeline for different cell
-		interval_parameter=overlap_level
+		interval_parameter=np.random.normal(overlap_level,overlap_level/2)
+		interval_parameter=int(abs(interval_parameter))
 		cell_timeline=spike_timeline_generator(time,interval_parameter,spike_len)	
 		
 		# store timeline to list
@@ -147,6 +150,26 @@ def multi_electrons_signal_generator(num_cell,num_electron,spike_shape_parameter
 	
 
 	return signal,timeline_list,signal_matrix,delay_matrix,num_spike
+
+
+def set_cell_electron(num_cell,num_electron,detect_range):
+	
+	# a function to generate the boolean function determining whether a 
+	# cell appears in a electron
+	# detect_range:(0,1], 1 means all the cells can be detect by each electron
+
+	# random seed
+	rand.seed()
+	# initialze boolean matrix
+	boolean=np.zeros((num_cell,num_electron))
+
+	# make sure that all cells appear in at least 1 electron
+	for i in range(num_cell):
+		choose_electron2=np.random.permutation(num_electron)[0:1+int(num_electron*detect_range)]
+		boolean[i][choose_electron2]=1
+
+	return boolean
+
 
 
 def plot_data(num_cell,num_electron,signal_matrix,signal,spike_shape_parameter,boolean,spike_len,plot_size):
@@ -206,19 +229,26 @@ def plot_data(num_cell,num_electron,signal_matrix,signal,spike_shape_parameter,b
 			spike1=height1*np.exp(-np.power(spike_x/1.0 - mu1, 2.) / (2 * np.power(sigma1, 2.)))
 			spike2=height2*np.exp(-np.power(spike_x/1.0- mu2, 2.) / (2 * np.power(sigma2, 2.)))
 			spike=spike1-spike2
+			spike=spike*boolean[i,j]
 
 			ax3[i,j].plot(spike,color=color1[i])
+			ax3[i,j].set_title('Signals from cell %s'%(i))
+
+	
+	plt.show()
+	#plt.savefig('image/OriginalSpikes.png')
+
+def convert_X_block(X,num_electron,spike_len):
+	#convert 2D signal matrix to 3D
+	num_point=X.shape[0]
+	X_block=np.zeros((num_electron,num_point,spike_len))
+	for i in range(num_electron):
+		X_block[i,:,:]=X[:,i*spike_len:(i+1)*spike_len]
+
+	return X_block
 
 
-	plt.title('Original Spikes')
-	#plt.show()
-	plt.savefig('image/OriginalSpikes.png')
-
-
-
-
-def process_aligned_signal2(signal,timeline_list,num_spike,spike_len):
-
+def process_aligned_signal(signal,timeline_list,num_spike,spike_len):
 	# initialization
 	num_electron=signal.shape[0]
 	num_cell=len(timeline_list)
@@ -230,142 +260,32 @@ def process_aligned_signal2(signal,timeline_list,num_spike,spike_len):
 
 	for index in range(num_cell):
 		spike_loc=timeline_list[index]
-		spike_loc=spike_loc[0:-2]
+		
+		spike_loc=spike_loc[0:-1]
 		for location in spike_loc:
 			aligned_spikes[ite]=signal[:,location:location+spike_len].flatten()
+			#plt.plot(aligned_spikes[ite],color=color[index])
 			ite=ite+1
 			label.append(index)
+		#plt.show()
 
+	# if we use precise location of spikes, we don't need to do this
 	# choose one row as rolling benchmark
-	k=rand.randint(0,num_spike-1)
-	max_location=aligned_spikes[k].argmax(axis=0)
+	# k=rand.randint(0,num_spike-1)
+	# max_location=aligned_spikes[k].argmax(axis=0)
 
-	print(label)
-	# roll other rows according to this information
-	for num in range(num_spike):
-		spike_max_location=aligned_spikes[num].argmax(axis=0)
-		distance=max_location-spike_max_location
-		aligned_spikes[num]=np.roll(aligned_spikes[num],distance)
-		plt.plot(aligned_spikes[num])
-		plt.show()
-	
-	return aligned_spikes,label
+	# # roll other rows according to this information
+	# for num in range(num_spike):
+	# 	spike_max_location=aligned_spikes[num].argmax(axis=0)
+	# 	distance=max_location-spike_max_location
+	# 	aligned_spikes[num]=np.roll(aligned_spikes[num],distance)
+		# plt.plot(aligned_spikes[num])
+		# plt.show()
+	aligned_spikes3D=convert_X_block(aligned_spikes,num_electron,spike_len)
+	return aligned_spikes,aligned_spikes3D,label
 
-
-
-
-
-
-def process_aligned_signal(signal,timeline_list,num_spike,threshold,spike_len,window_height):
-	
-
-	# get number of electron
-	shape=signal.shape
-	# the first row is assumed to be have all cells to get the location
-	# of spike 
-	num_electron=shape[0]
-	num_cell=len(timeline_list)
-
-
-	# take convolution of the first row of matrix or not?...
-
-	# i=0
-	# spike1=signal[i]
-	# signal_abs=map(abs,spike1)
-	
-
-	# weights = np.repeat(window_height, spike_len)
-	# convolution=np.convolve(weights,signal_abs,'same')
-	# convolution=convolution/spike_len
-
-	# get information of spike location
-	#spike_loc=detect_peaks(convolution, mph=threshold, mpd=spike_len, show=False)
-
-
-	# Initialization
-	#m=len(spike_loc)
-	m=num_spike
-	n=spike_len
-	
-
-	# initialize empty 3D array for final aligned matrix
-	final_matrix=np.zeros((num_electron,m,n))
-	final_matrix_ecud=np.zeros((m,1))
-	
-	# initialize empty matrix for aligned matrix for each electron
-	detected_spikes=np.zeros((m,n))
-
-	# loop over each row of matrix_electron --- every electron
-	for num in range(num_electron):
-		
-		# initialize index
-		index=0
-		
-		signal_electron=signal[num]
-
-		# locate spike in electron signal and label them
-		for item in spike_loc:
-			detected_spikes[index]=signal_electron[item-spike_len/2:item+spike_len/2]
-			index=index+1
-
-		# aligned detected spikes in one signel electron
-
-		# random choose one row 
-		k=rand.randint(0,m-1)
-
-		# get the maximum location of this row
-		max_location=detected_spikes[k].argmax(axis=0)
-
-		# roll other rows according to this information
-		for i in range(0,m):
-			spike_max_location=detected_spikes[i].argmax(axis=0)
-			distance=max_location-spike_max_location
-			detected_spikes[i]=np.roll(detected_spikes[i],distance)
-
-		# add the aligned to our final matrix
-		final_matrix[num,:,:]=detected_spikes
-		final_matrix_ecud=np.concatenate((final_matrix_ecud,detected_spikes),axis=1)
-	
-		#get rid of the first zeros in the matrix
-	n=final_matrix_ecud.shape[1]
-	final_matrix_ecud=final_matrix_ecud[:,1:n]
-
-	return final_matrix,final_matrix_ecud,spike_loc
-
-
-
-
-# def label(num_cell,num_electron,timeline_list,spike_loc,boolean,spike_len):
-
-# 	# initialize label,each item in label is the 
-# 	# label for ith electron
-	
-# 	label=[]
-	
-# 	# label each spike in one electron
-# 	label_array=np.zeros(num_cell)
-	
-
-
-
-
-	# for item in spike_loc:
-	# 	for index in range(num_cell):
-
-	# 		distance=[]
-	# 		distance=timeline_list[index]+spike_len/2-item
-
-	# 		distance=abs(distance)
-	# 		label_array[index]=np.amin(distance)
-
-	# 	sorted_array=sorted(label_array)
-	# 	if(sorted_array[1]<spike_len):
-	# 		new_label=num_cell
-	# 		label.append(new_label)
-	# 	else:
-	# 		label.append(np.argmin(label_array))
-
-
+##################################################################################
+##################################################################################
 
 
 class data_initialization_spikeSorting:
@@ -383,13 +303,13 @@ class data_initialization_spikeSorting:
 
 		return self
 
-	def signal_generator(self,overlap_level,noise_level,boolean):
+	def signal_generator(self,overlap_level,noise_level,detect_range):
 		
-		self.signal,self.timeline_list,self.signal_matrix,self.delay_matrix,self.num_spike= \
-		multi_electrons_signal_generator(self.num_cell,self.num_electron,self.spike_shape_parameter,self.time,self.delay,overlap_level,noise_level,boolean,self.spike_len)
+		self.boolean=set_cell_electron(self.num_cell,self.num_electron,detect_range)
 
-		self.bool=boolean
-		
+		self.signal,self.timeline_list,self.signal_matrix,self.delay_matrix,self.num_spike= \
+		multi_electrons_signal_generator(self.num_cell,self.num_electron,self.spike_shape_parameter,self.time,self.delay,overlap_level,noise_level,self.boolean,self.spike_len)
+
 		return self
 
 
@@ -399,10 +319,9 @@ class data_initialization_spikeSorting:
 
 
 
+	def process_spike(self):
 
-	def get_aligned_signal(self):
-
-		self.alinged_spikes,self.label=process_aligned_signal2(self.signal,self.timeline_list,self.num_spike,self.spike_len)
+		self.signal_matrix,self.modified_signal_matrix,self.true_label=process_aligned_signal(self.signal,self.timeline_list,self.num_spike,self.spike_len)
 
 		return self
 
@@ -412,10 +331,114 @@ class data_initialization_spikeSorting:
 	# 	return self
 
 
+
 	def plot(self):
-		plot_data(self.num_cell,self.num_electron,self.signal_matrix,self.signal,self.spike_shape_parameter,self.bool,self.spike_len,plot_size=1500)
+		plot_data(self.num_cell,self.num_electron,self.signal_matrix,self.signal,self.spike_shape_parameter,self.boolean,self.spike_len,plot_size=3000)
 
 
+
+# def process_aligned_signal(signal,timeline_list,num_spike,threshold,spike_len,window_height):
+	
+
+# 	# get number of electron
+# 	shape=signal.shape
+# 	# the first row is assumed to be have all cells to get the location
+# 	# of spike 
+# 	num_electron=shape[0]
+# 	num_cell=len(timeline_list)
+
+
+# 	# take convolution of the first row of matrix or not?...
+
+# 	i=0
+# 	spike1=signal[i]
+# 	signal_abs=map(abs,spike1)
+	
+
+# 	weights = np.repeat(window_height, spike_len)
+# 	convolution=np.convolve(weights,signal_abs,'same')
+# 	convolution=convolution/spike_len
+
+# 	# get information of spike location
+# 	#spike_loc=detect_peaks(convolution, mph=threshold, mpd=spike_len, show=False)
+
+
+# 	# Initialization
+# 	#m=len(spike_loc)
+# 	m=num_spike
+# 	n=spike_len
+	
+
+# 	# initialize empty 3D array for final aligned matrix
+# 	final_matrix=np.zeros((num_electron,m,n))
+# 	final_matrix_ecud=np.zeros((m,1))
+	
+# 	# initialize empty matrix for aligned matrix for each electron
+# 	detected_spikes=np.zeros((m,n))
+
+# 	# loop over each row of matrix_electron --- every electron
+# 	for num in range(num_electron):
+		
+# 		# initialize index
+# 		index=0
+		
+# 		signal_electron=signal[num]
+
+# 		# locate spike in electron signal and label them
+# 		for item in spike_loc:
+# 			detected_spikes[index]=signal_electron[item-spike_len/2:item+spike_len/2]
+# 			index=index+1
+
+# 		# aligned detected spikes in one signel electron
+
+# 		# random choose one row 
+# 		k=rand.randint(0,m-1)
+
+# 		# get the maximum location of this row
+# 		max_location=detected_spikes[k].argmax(axis=0)
+
+# 		# roll other rows according to this information
+# 		for i in range(0,m):
+# 			spike_max_location=detected_spikes[i].argmax(axis=0)
+# 			distance=max_location-spike_max_location
+# 			detected_spikes[i]=np.roll(detected_spikes[i],distance)
+
+# 		# add the aligned to our final matrix
+# 		final_matrix[num,:,:]=detected_spikes
+# 		final_matrix_ecud=np.concatenate((final_matrix_ecud,detected_spikes),axis=1)
+	
+# 		#get rid of the first zeros in the matrix
+# 	n=final_matrix_ecud.shape[1]
+# 	final_matrix_ecud=final_matrix_ecud[:,1:n]
+
+# 	return final_matrix,final_matrix_ecud,spike_loc
+
+
+# def label(num_cell,num_electron,timeline_list,spike_loc,boolean,spike_len):
+
+# 	# initialize label,each item in label is the 
+# 	# label for ith electron
+	
+# 	label=[]
+	
+# 	# label each spike in one electron
+# 	label_array=np.zeros(num_cell)
+	
+	# for item in spike_loc:
+	# 	for index in range(num_cell):
+
+	# 		distance=[]
+	# 		distance=timeline_list[index]+spike_len/2-item
+
+	# 		distance=abs(distance)
+	# 		label_array[index]=np.amin(distance)
+
+	# 	sorted_array=sorted(label_array)
+	# 	if(sorted_array[1]<spike_len):
+	# 		new_label=num_cell
+	# 		label.append(new_label)
+	# 	else:
+	# 		label.append(np.argmin(label_array))
 
 
 

@@ -168,7 +168,7 @@ def k_means_ModifiedSum_spikeDetection(X,num_cluster,num_electron,iterations,kme
 	return center_vectors_list,label_list
 
 
-def detect_spikeEnergy(X,num_electron,num_cluster):
+def detect_spikeEnergy(X,num_electron):
 	num_point=X.shape[1]
 	low_energy_list=[]
 
@@ -178,47 +178,95 @@ def detect_spikeEnergy(X,num_electron,num_cluster):
 				low_energy_index=[index,index2]
 				low_energy_list.append(low_energy_index)
 
+	#print(low_energy_list)
 	return low_energy_list
 
 
 
 def k_means_MinEculidean_distance(X,center_vectors,low_energy_list):
 
+	#initialization
 	count=0
 	num_point=X.shape[1]
 	num_electron=X.shape[0]
 	num_cluster=center_vectors.shape[1]
+	label=[]
+	distance_matrix=np.zeros((num_electron,num_cluster))
+
+
+	for index in range(num_point):
+
+		for index2 in range(num_electron):
+			single_electron=X[index2,index,:]
+			
+			# compare spike in each electron of cell with correspoding center vectors
+			center_single_electron=center_vectors[index2,:,:]
+			
+			distance_matrix[index2]=distance.cdist([single_electron],center_single_electron)
+			
+			#check if the spike pass certain threshold
+			loc=[index2,index]
+            
+			if loc in low_energy_list:
+				for index3 in range(num_cluster):
+					if(np.amax(center_vectors[index2,index3,:]<=200) and np.amin(center_vectors[index2,index3,:]>=-200)):
+						count=count+1
+						distance_matrix[index2,index3]=1000000
+
+		# get the smallest number in the matrix
+		label_=np.unravel_index(distance_matrix.argmin(),distance_matrix.shape)
+		# get the cluster index of the matrix
+		number=int(label_[1])
+		label.append(number)
+	print(distance_matrix)
+	#print(count,'count')
+	return label
+
+
+def k_means_MinEculidean_distance2(X,center_vectors,low_energy_list):
+
+
+	count=0
+	num_point=X.shape[1]
+	num_electron=X.shape[0]
+
+	num_cluster=center_vectors.shape[1]
 	
 	#print(num_point*num_electron,'num_point')
-
 	label=[]
 
 	distance_matrix=np.zeros((num_electron,num_cluster))
 
+
 	for index in range(num_point):
+
 		for index2 in range(num_electron):
+
 			single_electron=X[index2,index,:]
 			# compare spike in each electron of cell with correspoding center vectors
 			center_single_electron=center_vectors[index2,:,:]
 			
 			distance_matrix[index2]=distance.cdist([single_electron],center_single_electron)
 			
-
 			#check if the spike pass certain threshold
-			loc=[index2,index]
-			
-			if loc in low_energy_list:
-				for index3 in range(num_cluster):
-					if np.amax(center_vectors[index2,index3,:]<=200):
-						
-						count=count+1
-						distance_matrix[index2,index3]=100000
+			#loc=[index2,index]
 
+			if(np.amax(single_electron)<=200 and np.amin(single_electron>=200)):
+			#if loc in low_energy_list:
+				for index3 in range(num_cluster):
+					if(np.amax(center_vectors[index2,index3,:]<=200) and np.amin(center_vectors[index2,index3,:]>=-200)):
+
+						count=count+1
+						distance_matrix[index2,index3]=1000000
+		
 		# get the smallest number in the matrix
 		label_=np.unravel_index(distance_matrix.argmin(),distance_matrix.shape)
 		# get the cluster index of the matrix
+		#print(distance_matrix)
 		number=int(label_[1])
 		
+		#print(count,'count')
+
 		label.append(number)
 	#print(count,'count')
 	return label
@@ -234,7 +282,7 @@ def k_means_findCenter_block(X,num_cluster,label):
 
 	for index in range(num_cluster):
 		
-		
+	
 		cluster_vector=X[:,label==index,:]
 		number=cluster_vector.shape[1]
 		#print(number,'of cluster',index)
@@ -277,7 +325,7 @@ def k_means_SumEculidean_spikeDetection(X,num_cluster,iterations,kmeans_iter):
 
 def k_means_MinEculidean_spikeDetection(X,num_electron,num_cluster,iterations,kmeans_iter):
 	
-	low_energy_list=detect_spikeEnergy(X,num_electron,num_cluster)
+	low_energy_list=detect_spikeEnergy(X,num_electron)
 	center_vectors_list=[]
 	label_list=[]
 	
@@ -294,6 +342,31 @@ def k_means_MinEculidean_spikeDetection(X,num_electron,num_cluster,iterations,km
 		label_list.append(label)
 
 	return center_vectors_list,label_list
+
+
+
+
+def k_means_MinEculidean_spikeDetection2(X,num_electron,num_cluster,iterations,kmeans_iter):
+	low_energy_list=detect_spikeEnergy(X,num_electron)
+	center_vectors_list=[]
+	label_list=[]
+	
+	for i in range(kmeans_iter):
+		initial_center=init_centroids_electronBlock(X,num_cluster)
+		center_vectors=initial_center.copy()
+
+		for ite in range(iterations):
+
+			label=k_means_MinEculidean_distance2(X,center_vectors,low_energy_list)
+			center_vectors=k_means_findCenter_block(X,num_cluster,label)
+
+		center_vectors_list.append(center_vectors)
+		label_list.append(label)
+
+	return center_vectors_list,label_list
+
+
+
 
 
 
@@ -327,7 +400,7 @@ def Most_Common(lst):
     return data.most_common(1)[0][0]
 
 
-def evaluate_kmeans(num_cluster,label,predict_label_list,cluster_centers_list):
+def evaluate_kmeans(num_cluster,label,predict_label_list,cluster_centers_list,mode):
 	
 	label=np.array(label)
 	percentage=[]
@@ -353,7 +426,7 @@ def evaluate_kmeans(num_cluster,label,predict_label_list,cluster_centers_list):
 
 		percentage.append(1.0*count/num_point)
 	
-	print(max(percentage))
+	print('the right prediction of ',mode,'is',max(percentage))
 
 	high_prediction=np.argmax(percentage)
 	predict_label=predict_label_list[high_prediction]
@@ -403,8 +476,12 @@ class Kmeans_spikeDetection:
 		return self
 
 
-	def evaluate(self,true_label,predict_label_list):
-		self.predict_label,self.predict_center=evaluate_kmeans(self.num_cluster,true_label,predict_label_list,self.cluster_centers_list)
+	def min_threshold(self,X,distance_mode,kmeans_iter=10):
+		self.cluster_centers_list,self.predict_label_list=k_means_MinEculidean_spikeDetection2(X,self.num_electron,self.num_cluster,self.iterations,kmeans_iter)
+	
+
+	def evaluate(self,true_label,predict_label_list,mode):
+		self.predict_label,self.predict_center=evaluate_kmeans(self.num_cluster,true_label,predict_label_list,self.cluster_centers_list,mode)
 		
 		return self
 

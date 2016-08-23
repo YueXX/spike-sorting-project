@@ -76,7 +76,18 @@ Week Aug5-Aug12
 not to use convolution in data init
 label/visdualize
 
-change sklearn kmeans to our distance
+
+problems:
+the label makes prediction rate low.....
+
+No difference between normal/sum of Euclidean
+
+Solution:
+1. run K-means several times
+2. change sklearn kmeans to our distance
+3. change data
+
+
 
 read two papers
 
