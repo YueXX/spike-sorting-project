@@ -8,6 +8,7 @@ import sys
 sys.dont_write_bytecode = True
 
 
+
 def spike_timeline_generator(time,interval_parameter,spike_len):
 # Initilization
 	rand.seed()

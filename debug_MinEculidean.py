@@ -117,7 +117,7 @@ def multi_electrons_shape_generator(num_cell, num_electron):
 
 
 def multi_electrons_signal_generator(num_cell, num_electron, spike_shape_parameter, time, delay, overlap_level,
-                                     noise_level, boolean, spike_len):
+									 noise_level, boolean, spike_len):
 	rand.seed()
 	# initialize cell with different delay in electrons
 	delay_matrix = np.zeros((num_cell, num_electron))
@@ -360,15 +360,15 @@ spike_len = 100
 
 spike_shape_parameter = multi_electrons_shape_generator(num_cell, num_electron)
 signal, timeline_list, signal_matrix, delay_matrix, num_spike = multi_electrons_signal_generator(num_cell, num_electron,
-                                                                                                 spike_shape_parameter,
-                                                                                                 time, delay,
-                                                                                                 overlap_level,
-                                                                                                 noise_level, boolean,
-                                                                                                 spike_len)
+																								 spike_shape_parameter,
+																								 time, delay,
+																								 overlap_level,
+																								 noise_level, boolean,
+																								 spike_len)
 aligned_spikes, aligned_spikes3D, original_label = process_aligned_signal(signal, timeline_list, num_spike, spike_len)
 X = aligned_spikes3D
 iterations = 2
 kmeans_iter = 2
 
 center_vectors_list, label_list = k_means_MinEculidean_spikeDetection(X, num_electron, num_cluster, iterations,
-                                                                      kmeans_iter)
+																	  kmeans_iter)

@@ -12,16 +12,14 @@ def main():
 
 
 
-
-
 	# set parameter
-	num_cell=6
-	num_electron=6
+	num_cell=3
+	num_electron=3
 	
 	overlap_level1=1000
-	overlap_level2=100
+	overlap_level2=200
 
-	noise_level=20
+	noise_level=0
 	data=data_initialization_spikeSorting(num_cell=num_cell,num_electron=num_electron,time=70000,delay=False)
 	
 	# shape of the spike is fixed here
@@ -57,12 +55,12 @@ def main():
 
 	kMeans=Kmeans_spikeDetection(num_cluster=num_cell,num_electron=num_electron,iterations=40)
  # 	#print(data.true_label)
-	mode='MinEculidean'
-	kMeans.min_threshold(modified_signal_matrix1,distance_mode=mode)
-	kMeans.evaluate(true_label1,kMeans.predict_label_list,mode)
+	# mode='MinEculidean'
+	# kMeans.min_threshold(modified_signal_matrix1,distance_mode=mode)
+	# kMeans.evaluate(true_label1,kMeans.predict_label_list,mode)
 	
-	kMeans.min_threshold(modified_signal_matrix2,distance_mode=mode)
-	kMeans.evaluate(true_label2,kMeans.predict_label_list,mode)
+	# kMeans.min_threshold(modified_signal_matrix2,distance_mode=mode)
+	# kMeans.evaluate(true_label2,kMeans.predict_label_list,mode)
 
 
 	#kMeans.plotCenter()
@@ -71,12 +69,12 @@ def main():
 
 	#kMeans.plotCluster(data.modified_signal_matrix,kMeans.predict_label)
 
-	mode='Eculidean'
-	kMeans.fit(signal_matrix1,distance_mode=mode)
-	kMeans.evaluate(true_label1,kMeans.predict_label_list,mode)
+	# mode='Eculidean'
+	# kMeans.fit(signal_matrix1,distance_mode=mode)
+	# kMeans.evaluate(true_label1,kMeans.predict_label_list,mode)
 	
-	kMeans.fit(signal_matrix2,distance_mode=mode)
-	kMeans.evaluate(true_label2,kMeans.predict_label_list,mode)
+	# kMeans.fit(signal_matrix2,distance_mode=mode)
+	# kMeans.evaluate(true_label2,kMeans.predict_label_list,mode)
 	
 	mode='SumEculidean'
 
@@ -86,11 +84,11 @@ def main():
 	kMeans.fit(modified_signal_matrix2,distance_mode=mode)
 	kMeans.evaluate(true_label2,kMeans.predict_label_list,mode)
 	
-	os.system('say "your code has finished"')
+	#os.system('say "your code has finished"')
 
 
 
-	#kMeans.plotCluster(data.modified_signal_matrix,kMeans.predict_label)
+	kMeans.plotCluster(data.modified_signal_matrix,kMeans.predict_label)
 
 	# kMeans.fit(data.modified_signal_matrix,distance_mode='SumEculidean')
 	# kMeans.evaluate(data.true_label,kMeans.predict_label_list)

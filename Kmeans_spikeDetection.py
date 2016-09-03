@@ -93,6 +93,7 @@ def init_centroids_electronBlock(X,num_cluster):
 	# return randomly initialized centers
 	for index in range(num_cluster):
 		initial_center[:,index,:]=X[:,index_permutation[index],:]
+	print(initial_center.shape)
 	return initial_center
 
 
@@ -251,7 +252,7 @@ def k_means_MinEculidean_distance2(X,center_vectors,low_energy_list):
 			#check if the spike pass certain threshold
 			#loc=[index2,index]
 
-			if(np.amax(single_electron)<=200 and np.amin(single_electron>=200)):
+			if(np.amax(single_electron)<=200 and np.amin(single_electron>=-200)):
 			#if loc in low_energy_list:
 				for index3 in range(num_cluster):
 					if(np.amax(center_vectors[index2,index3,:]<=200) and np.amin(center_vectors[index2,index3,:]>=-200)):
@@ -476,7 +477,7 @@ class Kmeans_spikeDetection:
 		return self
 
 
-	def min_threshold(self,X,distance_mode,kmeans_iter=10):
+	def min_threshold(self,X,distance_mode,kmeans_iter=1):
 		self.cluster_centers_list,self.predict_label_list=k_means_MinEculidean_spikeDetection2(X,self.num_electron,self.num_cluster,self.iterations,kmeans_iter)
 	
 
