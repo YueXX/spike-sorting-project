@@ -61,7 +61,7 @@ Applies a high-pass filter and normalizes the amplitude of the electrode data.
 
 Detect pattern of multi-electrode patterns, use non-negative matrix factorization
 
-[![This is python animation](https://github.com/YueXX/spike-sorting-project/tree/master/animation/mysimsworldmap-v6.png)]
+![Alt text](mysimsworldmap-v6.png?raw=true "Optional Title")
 
 
 
