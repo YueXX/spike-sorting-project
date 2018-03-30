@@ -101,33 +101,37 @@ def undersample_convolution_plot(signal_mat, spike_loc_list, convolution_signal_
                                  path ='fig/undersample plot'):
     time_axis = np.arange(plot_interval[0], plot_interval[1], time_step)
     num_electron = signal_mat.shape[0]
-
-    fig, axs = plt.subplots(nrows=num_electron, ncols=1, sharex=True, sharey=True)
+    signal_length = signal_mat.shape[1]
+    fig, axs = plt.subplots(nrows=num_electron, ncols=1, sharex=True, sharey=True, figsize=(15, 15))
     # normalize signal for better visualization
     signal_mat = signal_mat/np.max(np.abs(signal_mat))
     convolution_signal_mat = convolution_signal_mat/np.max(np.abs(convolution_signal_mat))
+    start = int(plot_interval[0] / time_step)
+    end = int(plot_interval[1] / time_step)
+
     for i in range(num_electron):
         # plot original signal
-        start = int(plot_interval[0]/time_step)
-        end = int(plot_interval[1]/time_step)
-        axs[i].plot(time_axis, signal_mat[i][start:end], label='signal ')
+
+        axs[i].plot(time_axis, signal_mat[i][start:end], c='lightcoral', label='signal ')
 
         # plot convolution
-        axs[i].plot(time_axis, convolution_signal_mat[i][start: end], label='convolution')
+        axs[i].plot(time_axis, convolution_signal_mat[i][start: end],'--',c='orange', label='convolution')
 
         # plot the point where we think is the spike location
         spike_loc = spike_loc_list[i]
-        for index in spike_loc:
+        index = np.array([item for item in spike_loc if plot_interval[0] <= item*time_step < plot_interval[1]])
+        axs[i].scatter(index * time_step, np.ones(len(index)), marker='o', c='c', label='spike location')
 
-            if index * time_step < plot_interval[1] and index * time_step > plot_interval[0]:
-                axs[i].scatter(index * time_step, 1, marker='o', c='r')
         # plot the undersample grid
-        grid_point = np.arange(start, end, undersample_window)
-        axs[i].scatter(grid_point * time_step, np.zeros(len(grid_point)), marker="|", c= 'g')
+        grid_point = np.arange(0, signal_length, undersample_window)
+        grid_point = np.array([point for point in grid_point if end >= point >= start])
+        axs[i].scatter(grid_point * time_step, np.zeros(len(grid_point)), marker="*", c= 'g', label='undersample grid')
 
-        axs[i].set_title('Undersample of electron ' + str(i))
+    axs[0].set_title('Undersample of signals by ' + str(num_electron)+' electrons')
+    axs[0].legend(loc=2)
+    plt.xlabel('time step')
+    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 
-    plt.legend()
     plt.savefig(path)
     plt.close()
     return

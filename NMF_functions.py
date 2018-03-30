@@ -13,8 +13,6 @@ def semi_NMF_vs_rank(matrix, rank_list, iterations, png_name=None):
         snmf_mdl.factorize(niter=iterations)
         W = snmf_mdl.W
         H = snmf_mdl.H
-        print(W.shape, 'W')
-        print(H.shape, 'H')
         error_norm = np.linalg.norm(matrix - np.dot(W,H))
         error_norm = error_norm / np.linalg.norm(matrix)
         error.append(error_norm)
@@ -35,12 +33,14 @@ def semi_NMF_vs_rank(matrix, rank_list, iterations, png_name=None):
 
 
 def NMF_basis_plot(W, file_name ='fig/NMF basis plot'):
-    W = W.transpose()
+    # W = W.transpose()
     num_neuron = W.shape[0]
-    fig, axs = plt.subplots(nrows=num_neuron, ncols=1, sharex=True, sharey=True)
+    fig, axs = plt.subplots(nrows=num_neuron, ncols=1, sharex=True, sharey=True, figsize=(10, 10))
     for i in range(num_neuron):
         axs[i].plot(W[i])
-        axs[i].set_title('Neuron ' + str(i) + ' signals')
+    plt.xlabel('time step')
+    axs[0].set_title('Semi NMF Basis Matrix F Column Plot')
     plt.savefig(file_name)
+    plt.close()
     return
 

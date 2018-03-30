@@ -1,6 +1,7 @@
 # data generated functions built according to Performance evaluation of PCA-based spike sorting algorithms.pdf
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
 
 
 def spike_shape_func(t, amplitude, total_duration, rising_phase, t0):
@@ -27,13 +28,14 @@ def gaussian_noise_generator(noise_mean, noise_deviation, time_length):
     return noise
 
 
-def neuron_shape_plot(neuron_shape_parm, time_step, path = 'fig/neuron shape plot'):
+def neuron_shape_plot(neuron_shape_parm, time_step, path = 'fig/neuronShapePlot'):
     t = np.arange(-np.pi, np.pi, time_step)
     num_neuron = len(neuron_shape_parm['t0'])
+    fig=plt.plot(figsize = (15, 15))
     for i in range(num_neuron):
         shape = spike_shape_func(t, neuron_shape_parm['amplitude'][i], neuron_shape_parm['total_duration'][i],
                                  neuron_shape_parm['rising_phase'][i], neuron_shape_parm['t0'][i] )
-        plt.plot(t,shape, label= str(neuron_shape_parm['amplitude'][i])+' '+str(neuron_shape_parm['total_duration'][i]) +
+        plt.plot(t,shape, label= str(i)+' neuron '+str(neuron_shape_parm['amplitude'][i])+' '+str(neuron_shape_parm['total_duration'][i]) +
                                ' '+str(neuron_shape_parm['rising_phase'][i]) + ' '
                                  + str(neuron_shape_parm['t0'][i]))
 
@@ -102,17 +104,39 @@ def multiple_electron_generator(time_step, time_length, neuron_firing_rate_parm,
     return signal_per_electron, neuron_spiking_timeline, signal_basis_matrix
 
 
-def multiple_electron_plot(signal_per_electron, time_step, plot_time_interval, path='fig/multiple electron plot'):
+def multiple_electron_plot(signal_per_electron, time_step, plot_time_interval, path='fig/multiple electron plot', title='Original Signals'):
     num_electron = signal_per_electron.shape[0]
-    fig, axs = plt.subplots(nrows=num_electron, ncols=1, sharex=True, sharey=True )
+    fig, axs = plt.subplots(nrows=num_electron, ncols=1, sharex=True, sharey=True, figsize=(15, 15))
     time_axis = np.arange(plot_time_interval[0], plot_time_interval[1], time_step)
     for i in range(num_electron):
         axs[i].plot(time_axis, signal_per_electron[i][int(plot_time_interval[0]/time_step): int(plot_time_interval[1]/time_step)])
-        axs[i].set_title('Electron '+str(i)+' detected signals')
-    plt.xlabel('time')
+
+    axs[0].set_title(title + str(num_electron)+' electrons')
+    plt.xlabel('time step')
     plt.savefig(path)
     plt.close()
     return
+
+def multiple_electron_plot_diffcolor(signal_basis_matrix, neuron_indicator_matrix, time_step, plot_time_interval, path):
+
+    num_electron = neuron_indicator_matrix.shape[0]
+    num_neuron = neuron_indicator_matrix.shape[1]
+    time_axis = np.arange(plot_time_interval[0], plot_time_interval[1], time_step)
+    color = cm.rainbow(np.linspace(0, 1, num_neuron))
+
+    fig, axs = plt.subplots(nrows=num_electron, ncols=1, sharex=True, sharey=True, figsize=(15, 15))
+    axs[0].set_title('Signals Detected by Electrons')
+    for i in range(num_electron):
+        for j in range(num_neuron):
+            if neuron_indicator_matrix[i,j]==1:
+                axs[i].plot(time_axis, signal_basis_matrix[j][int(plot_time_interval[0] / time_step):
+                                                              int(plot_time_interval[1] / time_step)], c=color[j], label='neuron'+str(j))
+        axs[i].legend()
+    plt.xlabel('timestep')
+    plt.savefig(path)
+    plt.close()
+    return
+
 
 
 def neuron_func_connect_matrix_generator(num_electron, num_neuron, p):
@@ -161,6 +185,19 @@ def firing_rate_generator(num_neuron, firing_rate_range=[800, 1000], overlap_int
 
 # TODO
 # Non Gaussian dynamical e.g Ornstein–Uhlenbeck noise generator
+def gaussin_noise(signal, noise_level):
+
+
+    return signal_with_noise
+
+def non_gaussian_noise1():
+
+    return
+
+def non_gaussian_noise2():
+
+    return
+
 # neuron shape generator
 # Down-sample signal
 
